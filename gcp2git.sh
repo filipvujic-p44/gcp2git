@@ -1,5 +1,5 @@
 #!/bin/bash
-version="1.0.6"
+version="v1.0.6"
 author="Filip Vujic"
 last_updated="01-Dec-2023"
 
