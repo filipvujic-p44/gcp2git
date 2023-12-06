@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.6"
+version="v1.0.7"
 author="Filip Vujic"
-last_updated="01-Dec-2023"
+last_updated="06-Dec-2023"
 
 
 ###################################################################################
@@ -40,7 +40,10 @@ INSTALLATION:
 	Using '--uninstall' will remove all changes made during install.
 
 USAGE:
-	gcp2git.sh 	[--version] [--help] [--help-gcloud-cli]
+	gcp2git.sh 	[--version] [--chk-for-updates]
+			[--auto-chk-for-updates-off]
+			[--auto-chk-for-updates-on]
+			[--help] [--help-gcloud-cli]
 			[--modes] [--install] [--uninstall]
 			[--generate-env-file] [--update-gitignore-file]
 			[--compare-lcl-and-pg] [--compare-lcl-and-int]
@@ -59,6 +62,9 @@ USAGE:
 OPTIONS:
 	general:
 		-v | --version 			Display script version and author.
+		--chk-for-updates		Check for new script versions.
+		--auto-chk-for-updates-off	Turns off automatic check for updates.
+		--auto-chk-for-updates-on	Check for updates on every script excution (requires internet connection).
 		-h | --help   			Display help and usage info.
 		--help-gcloud-cli		Display gcloud cli help.
 		--modes				Display available update modes.
@@ -173,6 +179,7 @@ EOL
 # Initialize variables to default values
 do_install=false
 do_uninstall=false
+flg_chk_for_updates=false
 flg_generate_env_file=false
 flg_compare_lcl_and_pg=false
 flg_compare_lcl_and_int=false
@@ -304,6 +311,21 @@ while [ "$1" != "" ]; do
 			echo "gcp2git version: $version"
 			echo "author: $author"
 			echo "last updated: $last_updated"
+			exit 0
+			;;
+		--chk-for-updates)
+			flg_chk_for_updates=true
+			;;
+		--auto-chk-for-updates-off)
+			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
+			sed -i "${line_number}s/flg_chk_for_updates=true/flg_chk_for_updates=false/" "$0"
+			echo "Info: Auto check for updates turned off."
+			exit 0
+			;;
+		--auto-chk-for-updates-on)
+			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
+			sed -i "${line_number}s/flg_chk_for_updates=false/flg_chk_for_updates=true/" "$0"
+			echo "Info: Auto check for updates turned on."
 			exit 0
 			;;
 		-h | --help)
@@ -450,8 +472,9 @@ check_service() {
 }
 
 # Check if install/uninstall or update mode is set
-if  [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ] && [ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] &&
-[ "$flg_compare_lcl_and_pg" != "true" ] && [ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
+if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ] &&
+[ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] && [ "$flg_compare_lcl_and_pg" != "true" ] &&
+[ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
 [ "$flg_download_pg" != "true" ] && [ "$flg_download_qa_int" != "true" ] && [ "$flg_update_lcl_from_pg" != "true" ] &&
 [ "$flg_update_lcl_from_qa_int" != "true" ] && [ "$flg_update_pg_from_lcl" != "true" ] &&
 [ "$flg_update_pg_from_qa_int" != "true" ] && [ "$flg_update_gh_from_pg" != "true" ] &&
@@ -538,7 +561,8 @@ autocomplete() {
 	local cur prev words cword
 	_init_completion || return
 
-	local options="--version --help --help-gcloud-cli --modes --install --uninstall --generate-env-file "
+	local options="--version --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
+	options+="--help --help-gcloud-cli --modes --install --uninstall --generate-env-file "
 	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
@@ -598,6 +622,27 @@ EOL
 	echo "$env_text" >> ./.env_gcp2git
 	echo "Info: Generated '.env_gcp2git' file."
 }
+
+
+###########################################################################################
+###################################### Version check ######################################
+###########################################################################################
+
+
+check_for_updates() {
+	local repo_owner="filipvujic-p44"
+	local repo_name="gcp2git"
+	local local_version=$(echo "$version" | sed 's/^v//')
+	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
+
+	local version_result=$(awk -v v1="$local_version" -v v2="$remote_version" 'BEGIN {if (v1==v2) {result=0; exit;}; split(v1, a, "."); split(v2, b, "."); for (i=1; i<=length(a); i++) {if (a[i]<b[i]) {result=1; exit;}} {result=0; exit;}} END {print result}')
+
+	case $version_result in
+		0) echo "Info: You already have the latest script version ($version).";;
+		1) echo "Info: New version available (v$remote_version). Please visit 'https://github.com/filipvujic-p44/gcp2git/releases' for more info.";;
+	esac
+}
+
 
 ###############################################################################################
 ###################################### Utility functions ######################################
@@ -950,6 +995,12 @@ update_github() {
 ###########################################################################################################################
 ############################################ Flags checks and function calls ##############################################
 ###########################################################################################################################
+
+
+# Check for updates
+if [ "$flg_chk_for_updates" == "true" ]; then
+	check_for_updates
+fi
 
 
 # Install
