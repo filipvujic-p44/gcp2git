@@ -633,7 +633,7 @@ check_for_updates() {
 	local repo_owner="filipvujic-p44"
 	local repo_name="gcp2git"
 	local local_version=$(echo "$version" | sed 's/^v//')
-	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
+	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
 
 	local version_result=$(awk -v v1="$local_version" -v v2="$remote_version" 'BEGIN {if (v1==v2) {result=0; exit;}; split(v1, a, "."); split(v2, b, "."); for (i=1; i<=length(a); i++) {if (a[i]<b[i]) {result=1; exit;}} {result=0; exit;}} END {print result}')
 
