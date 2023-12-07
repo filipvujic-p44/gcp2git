@@ -25,6 +25,7 @@ INFO:
 	gcp2git version: $version
 	author: $author
 	last updated: $last_updated
+	github: https://github.com/filipvujic-p44/gcp2git
 
 	This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
 	from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
@@ -311,6 +312,7 @@ while [ "$1" != "" ]; do
 			echo "gcp2git version: $version"
 			echo "author: $author"
 			echo "last updated: $last_updated"
+			echo: "github: https://github.com/filipvujic-p44/gcp2git"
 			exit 0
 			;;
 		--chk-for-updates)
