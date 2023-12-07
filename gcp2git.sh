@@ -801,20 +801,24 @@ upload_to_pg() {
 	check_args 1 $@
 	local source_folder=$1
 	# function logic
-	mkdir "./tmp_$carrier"
-	mkdir "./tmp_$carrier/$carrier"
+	local tmp_dir="./tmp_$carrier"
+	if [ -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir"
+	fi
+	mkdir "$tmp_dir"
+	mkdir "$tmp_dir/$carrier"
 	for source_file in "$source_folder"/*; do
 		if [ -f "$source_file" ]; then
 			filename=$(basename "$source_file")
 			if check_file_prefix "$filename"; then
-				cp "$filename" "./tmp_$carrier/$carrier/"
+				cp "$filename" "$tmp_dir/$carrier/"
 				echo "Info: Processing $filename for upload."
 			fi
 		fi
 	done
-	upload_file_to_gcp "./tmp_$carrier/$carrier" "$gcp_pg_upload_dir_url"
+	upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_pg_upload_dir_url"
 	echo "Info: Uploaded files to GCP playground"
-	rm -rf "./tmp_$carrier"
+	rm -rf "$tmp_dir"
 }
 
 # Generic function. Check if git installed.
