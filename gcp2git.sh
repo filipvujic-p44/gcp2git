@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.7"
+version="v1.0.8"
 author="Filip Vujic"
-last_updated="06-Dec-2023"
+last_updated="07-Dec-2023"
 
 
 ###################################################################################
@@ -25,6 +25,7 @@ INFO:
 	gcp2git version: $version
 	author: $author
 	last updated: $last_updated
+	github: https://github.com/filipvujic-p44/gcp2git
 
 	This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
 	from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
@@ -311,6 +312,7 @@ while [ "$1" != "" ]; do
 			echo "gcp2git version: $version"
 			echo "author: $author"
 			echo "last updated: $last_updated"
+			echo: "github: https://github.com/filipvujic-p44/gcp2git"
 			exit 0
 			;;
 		--chk-for-updates)
@@ -425,6 +427,7 @@ done
 # Set local folder paths
 local_pg_folder="./downloaded_playground_${mode}_${interaction}_${service}_${carrier}"
 local_qa_int_folder="./downloaded_qa_int_${mode}_${interaction}_${service}_${carrier}"
+gcp_pg_upload_dir_url="$gcp_pg_base_url/$mode/$service/$interaction"
 gcp_pg_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
 gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
 
@@ -690,7 +693,11 @@ upload_file_to_gcp() {
 	local filename=$1
 	local gcp_url=$2
 	# function logic
-	gsutil -q cp "$filename" "$gcp_url"
+	if [ -d "$filename" ]; then
+		gsutil -q cp -r "$filename" "$gcp_url"
+	else
+		gsutil -q cp "$filename" "$gcp_url"
+	fi
 }
 
 # Generic function. Checks file content differences between two folders.
@@ -794,15 +801,24 @@ upload_to_pg() {
 	check_args 1 $@
 	local source_folder=$1
 	# function logic
+	local tmp_dir="./tmp_$carrier"
+	if [ -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir"
+	fi
+	mkdir "$tmp_dir"
+	mkdir "$tmp_dir/$carrier"
 	for source_file in "$source_folder"/*; do
 		if [ -f "$source_file" ]; then
 			filename=$(basename "$source_file")
 			if check_file_prefix "$filename"; then
-				upload_file_to_gcp "$source_folder/$filename" "$gcp_pg_full_url"
-				echo "Info: Uploaded $filename to GCP playground"
+				cp "$filename" "$tmp_dir/$carrier/"
+				echo "Info: Processing $filename for upload."
 			fi
 		fi
 	done
+	upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_pg_upload_dir_url"
+	echo "Info: Uploaded files to GCP playground"
+	rm -rf "$tmp_dir"
 }
 
 # Generic function. Check if git installed.
