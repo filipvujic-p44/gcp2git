@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.8"
+version="v1.0.9"
 author="Filip Vujic"
-last_updated="07-Dec-2023"
+last_updated="11-Dec-2023"
 
 
 ###################################################################################
@@ -718,13 +718,16 @@ compare_files() {
 				target_folder_file_path="$target_folder/$filename"
 				if cmp -s "$source_file" "$target_folder_file_path"; then
 					:
+				elif [[ "$source_file" == *.json ]] &&
+					diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &> /dev/null; then
+					echo "Info: File '$source_file' has matching content, but different formatting."
 				else
 					echo "Info: File $filename doesn't have matching content"
 					# If target file exists, print differences
 					if [ -f "$target_folder_file_path" ]; then
-						echo "Info: Filename: $source_file"
+						echo "Info: File content: $source_file"
 						grep -nFxvf "$source_file" "$target_folder_file_path"
-						echo "Info: Filename: $target_folder_file_path"
+						echo "Info: File content: $target_folder_file_path"
 						grep -nFxvf "$target_folder_file_path" "$source_file"
 					fi
 				fi
