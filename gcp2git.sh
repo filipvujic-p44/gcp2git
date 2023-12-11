@@ -180,6 +180,7 @@ EOL
 # Initialize variables to default values
 do_install=false
 do_uninstall=false
+# ref_chk_for_updates (do not change comment)
 flg_chk_for_updates=false
 flg_generate_env_file=false
 flg_compare_lcl_and_pg=false
@@ -318,15 +319,22 @@ while [ "$1" != "" ]; do
 			flg_chk_for_updates=true
 			;;
 		--auto-chk-for-updates-off)
+			ref_line_number=$(grep -n "ref_chk_for_updates*" $0 | head -n1 | cut -d':' -f1)
 			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
-			sed -i "${line_number}s/flg_chk_for_updates=true/flg_chk_for_updates=false/" "$0"
-			echo "Info: Auto check for updates turned off."
+			echo $line_number
+			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
+				sed -i "${line_number}s/flg_chk_for_updates=true/flg_chk_for_updates=false/" "$0"
+				echo "Info: Auto check for updates turned off."	
+			fi
 			exit 0
 			;;
 		--auto-chk-for-updates-on)
+			ref_line_number=$(grep -n "ref_chk_for_updates*" $0 | head -n1 | cut -d':' -f1)
 			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
-			sed -i "${line_number}s/flg_chk_for_updates=false/flg_chk_for_updates=true/" "$0"
-			echo "Info: Auto check for updates turned on."
+			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
+				sed -i "${line_number}s/flg_chk_for_updates=false/flg_chk_for_updates=true/" "$0"
+				echo "Info: Auto check for updates turned on."
+			fi
 			exit 0
 			;;
 		-h | --help)
