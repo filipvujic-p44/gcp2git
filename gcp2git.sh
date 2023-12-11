@@ -2,7 +2,7 @@
 version="v1.0.9"
 author="Filip Vujic"
 last_updated="11-Dec-2023"
-
+repo="https://github.com/filipvujic-p44/gcp2git"
 
 ###################################################################################
 ###################################### To Do ######################################
@@ -25,7 +25,7 @@ INFO:
 	gcp2git version: $version
 	author: $author
 	last updated: $last_updated
-	github: https://github.com/filipvujic-p44/gcp2git
+	github: $repo
 
 	This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
 	from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
@@ -42,70 +42,70 @@ INSTALLATION:
 
 USAGE:
 	gcp2git.sh 	[--version] [--chk-for-updates]
-			[--auto-chk-for-updates-off]
-			[--auto-chk-for-updates-on]
-			[--help] [--help-gcloud-cli]
-			[--modes] [--install] [--uninstall]
-			[--generate-env-file] [--update-gitignore-file]
-			[--compare-lcl-and-pg] [--compare-lcl-and-int]
-			[--compare-pg-and-int]
-			[--download-pg] [--download-int]
-			[--update-lcl-from-pg] [--update-lcl-from-int]
-			[--update-pg-from-lcl] [--update-pg-from-int]
-			[--update-gh-from-pg] [--update-gh-from-int]
-			[--update-all-from-int]
-			[--ltl] [--tl] [--push] [--pull]
-			[-r | --rating] [-d | --dispatch]
-			[-t | --tracking] [-i | --imaging]
-			[-n | --name = <carrier_name>]
-			<carrier_name>
+				[--auto-chk-for-updates-off]
+				[--auto-chk-for-updates-on]
+				[--help] [--help-gcloud-cli]
+				[--modes] [--install] [--uninstall]
+				[--generate-env-file] [--update-gitignore-file]
+				[--compare-lcl-and-pg] [--compare-lcl-and-int]
+				[--compare-pg-and-int]
+				[--download-pg] [--download-int]
+				[--update-lcl-from-pg] [--update-lcl-from-int]
+				[--update-pg-from-lcl] [--update-pg-from-int]
+				[--update-gh-from-pg] [--update-gh-from-int]
+				[--update-all-from-int]
+				[--ltl] [--tl] [--push] [--pull]
+				[-r | --rating] [-d | --dispatch]
+				[-t | --tracking] [-i | --imaging]
+				[-n | --name = <carrier_name>]
+				<carrier_name>
 
 OPTIONS:
 	general:
-		-v | --version 			Display script version and author.
-		--chk-for-updates		Check for new script versions.
+		-v | --version 				Display script version and author.
+		--chk-for-updates			Check for new script versions.
 		--auto-chk-for-updates-off	Turns off automatic check for updates.
 		--auto-chk-for-updates-on	Check for updates on every script excution (requires internet connection).
-		-h | --help   			Display help and usage info.
-		--help-gcloud-cli		Display gcloud cli help.
-		--modes				Display available update modes.
-		--install			Install script to use from anywhere in terminal.
-		--uninstall			Remove changes made during install.
-		--generate-env-file		Generates '.env_gcp2git' in current folder.
+		-h | --help   				Display help and usage info.
+		--help-gcloud-cli			Display gcloud cli help.
+		--modes						Display available update modes.
+		--install					Install script to use from anywhere in terminal.
+		--uninstall					Remove changes made during install.
+		--generate-env-file			Generates '.env_gcp2git' in current folder.
 		--update-gitignore-file		Updates '.gitignore' file.
 
 	update-modes:
 		--compare-lcl-and-pg		Downloads playground files and compares content with local files.
 		--compare-lcl-and-int		Downloads qa-int files and compares content with local files.
 		--compare-pg-and-int		Downloads playground and qa-int files and compares content of each file.
-		--download-pg			Download remote playground files.
-		--download-int			Download remote qa-int files.
+		--download-pg				Download remote playground files.
+		--download-int				Download remote qa-int files.
 		--update-lcl-from-pg		Updates local files from GCP playground.
 		--update-lcl-from-int		Updates local files from GCP qa-int.
 		--update-pg-from-lcl		Updates GCP playground files from local.
 		--update-pg-from-int		Updates GCP playground files from GCP qa-int.
-		--update-gh-from-pg		Updates GitHub files from GCP playground.
+		--update-gh-from-pg			Updates GitHub files from GCP playground.
 		--update-gh-from-int		Updates GitHub files from GCP qa-int.
 		--update-all-from-int		Updates local, GCP playground and GitHub files from GCP qa-int.
 
 	interaction-modes:
 		--ltl				Set mode to 'LTL' (default value).
 		--tl				Set mode to 'TL'.
-		--push            		Set interaction to 'CARRIER_PUSH'.
-		--pull            		Set interaction to 'CARRIER_PULL' (default value).
+		--push            	Set interaction to 'CARRIER_PUSH'.
+		--pull            	Set interaction to 'CARRIER_PULL' (default value).
 
 	services:
-		-r | --rating     		Set service to 'RATING'.
-		-d | --dispatch			Set service to 'DISPATCH'.
-		-t | --tracking			Set service to 'SHIPMENT_STATUS'.
-		-i | --imaging  		Set service to 'IMAGING'.
+		-r | --rating     	Set service to 'RATING'.
+		-d | --dispatch		Set service to 'DISPATCH'.
+		-t | --tracking		Set service to 'SHIPMENT_STATUS'.
+		-i | --imaging  	Set service to 'IMAGING'.
 
 	carrier:
 		-n | --name <carrier_name>     	Set carrier name (case insensitive; can be set without using flags).
 
 EXAMPLES:
 	gcp2git.sh --tl -r gtjn      		Uses mode='TL', interaction='CARRIER_PULL', service='RATING', carrier='GTJN'.
-	gcp2git.sh --push -d -n EXLA        	Uses mode='LTL', interaction='CARRIER_PUSH', service='DISPATCH', carrier='EXLA'.
+	gcp2git.sh --push -d -n EXLA        Uses mode='LTL', interaction='CARRIER_PUSH', service='DISPATCH', carrier='EXLA'.
 	gcp2git.sh --tracking -n gtjn    	Uses mode='LTL', interaction='CARRIER_PULL', service='SHIPMENT_STATUS', carrier='GTJN'.
 
 NOTES:
@@ -123,13 +123,13 @@ MODES:
 	--compare-lcl-and-pg		Downloads playground files and compares content with local files.
 	--compare-lcl-and-int		Downloads qa-int files and compares content with local files.
 	--compare-pg-and-int		Downloads playground and qa-int files and compares content of each file.
-	--download-pg			Download remote playground files.
-	--download-int			Download remote qa-int files.
+	--download-pg				Download remote playground files.
+	--download-int				Download remote qa-int files.
 	--update-lcl-from-pg		Updates local files from GCP playground.
 	--update-lcl-from-int		Updates local files from GCP qa-int.
 	--update-pg-from-lcl		Updates GCP playground files from local.
 	--update-pg-from-int		Updates GCP playground files from GCP qa-int.
-	--update-gh-from-pg		Updates GitHub files from GCP playground.
+	--update-gh-from-pg			Updates GitHub files from GCP playground.
 	--update-gh-from-int		Updates GitHub files from GCP qa-int.
 	--update-all-from-int		Updates local, GCP playground and GitHub files from GCP qa-int.
 
@@ -209,7 +209,6 @@ if [ -e ".env_gcp2git" ]; then
 	source .env_gcp2git
 
 	# set update modes from .env
-
 
 	# Load compare local and pg value
 	if [ ! -z "COMPARE_LCL_AND_PG" ]; then
@@ -312,7 +311,7 @@ while [ "$1" != "" ]; do
 			echo "gcp2git version: $version"
 			echo "author: $author"
 			echo "last updated: $last_updated"
-			echo: "github: https://github.com/filipvujic-p44/gcp2git"
+			echo "github: $repo"
 			exit 0
 			;;
 		--chk-for-updates)
@@ -642,7 +641,7 @@ check_for_updates() {
 
 	case $version_result in
 		0) echo "Info: You already have the latest script version ($version).";;
-		1) echo "Info: New version available (v$remote_version). Please visit 'https://github.com/filipvujic-p44/gcp2git/releases' for more info.";;
+		1) echo "Info: New version available (v$remote_version). Please visit '$repo/releases' for more info.";;
 	esac
 }
 
