@@ -619,7 +619,7 @@ UPDATE_GH_FROM_PG=false
 UPDATE_GH_FROM_QA_INT=false
 UPDATE_ALL_FROM_QA_INT=false
 
-# URLs (defaults: already set)
+# URLS (defaults: already set)
 PLAYGROUND_BASE_URL=""
 QA_INT_BASE_URL=""
 
