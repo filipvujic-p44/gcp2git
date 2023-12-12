@@ -22,117 +22,115 @@ repo="https://github.com/filipvujic-p44/gcp2git"
 # Help text
 help_text=$(cat <<EOL
 INFO:
-	gcp2git version: $version
-	author: $author
-	last updated: $last_updated
-	github: $repo
+  gcp2git version: $version
+  author: $author
+  last updated: $last_updated
+  github: $repo
 
-	This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
-	from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
-	to a remote branch, based on the current brach name, using a default commit message.
+  This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
+  from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
+  to a remote branch, based on the current branch name, using a default commit message.
 
-	Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
-	For more info on how to set up gcloud cli read:
-	https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
+  Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
+  For more info on how to set up gcloud cli read:
+  https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
 INSTALLATION:
-	Using '--install' option will create a folder ~/gcp2git and put the script inside.
-	That path will be exported to ~/.bashrc so it can be used from anywhere.
-	Using '--uninstall' will remove all changes made during install.
+  Using '--install' option will create a folder ~/gcp2git and put the script inside.
+  That path will be exported to ~/.bashrc so it can be used from anywhere.
+  Using '--uninstall' will remove all changes made during install.
 
 USAGE:
-	gcp2git.sh 	[--version] [--chk-for-updates]
-				[--auto-chk-for-updates-off]
-				[--auto-chk-for-updates-on]
-				[--help] [--help-gcloud-cli]
-				[--modes] [--install] [--uninstall]
-				[--generate-env-file] [--update-gitignore-file]
-				[--compare-lcl-and-pg] [--compare-lcl-and-int]
-				[--compare-pg-and-int]
-				[--download-pg] [--download-int]
-				[--update-lcl-from-pg] [--update-lcl-from-int]
-				[--update-pg-from-lcl] [--update-pg-from-int]
-				[--update-gh-from-pg] [--update-gh-from-int]
-				[--update-all-from-int]
-				[--ltl] [--tl] [--push] [--pull]
-				[-r | --rating] [-d | --dispatch]
-				[-t | --tracking] [-i | --imaging]
-				[-n | --name = <carrier_name>]
-				<carrier_name>
+  gcp2git.sh [--version] [--chk-for-updates]
+             [--auto-chk-for-updates-off]
+             [--auto-chk-for-updates-on]
+             [--help] [--help-gcloud-cli]
+             [--modes] [--install] [--uninstall]
+             [--generate-env-file] [--update-gitignore-file]
+             [--compare-lcl-and-pg] [--compare-lcl-and-int]
+             [--compare-pg-and-int]
+             [--download-pg] [--download-int]
+             [--update-lcl-from-pg] [--update-lcl-from-int]
+             [--update-pg-from-lcl] [--update-pg-from-int]
+             [--update-gh-from-pg] [--update-gh-from-int]
+             [--update-all-from-int]
+             [--ltl] [--tl] [--push] [--pull]
+             [-r | --rating] [-d | --dispatch]
+             [-t | --tracking] [-i | --imaging]
+             [-n | --name=<carrier_name>]
+             <carrier_name>
 
 OPTIONS:
-	general:
-		-v | --version 				Display script version and author.
-		--chk-for-updates			Check for new script versions.
-		--auto-chk-for-updates-off	Turns off automatic check for updates.
-		--auto-chk-for-updates-on	Check for updates on every script excution (requires internet connection).
-		-h | --help   				Display help and usage info.
-		--help-gcloud-cli			Display gcloud cli help.
-		--modes						Display available update modes.
-		--install					Install script to use from anywhere in terminal.
-		--uninstall					Remove changes made during install.
-		--generate-env-file			Generates '.env_gcp2git' in current folder.
-		--update-gitignore-file		Updates '.gitignore' file.
+  general:
+    -v | --version                Display script version and author.
+    --chk-for-updates             Check for new script versions.
+    --auto-chk-for-updates-off    Turns off automatic check for updates.
+    --auto-chk-for-updates-on     Check for updates on every script execution (requires internet connection).
+    -h | --help                   Display help and usage info.
+    --help-gcloud-cli             Display gcloud cli help.
+    --modes                       Display available update modes.
+    --install                     Install script to use from anywhere in terminal.
+    --uninstall                   Remove changes made during install.
+    --generate-env-file           Generates '.env_gcp2git' in the current folder.
+    --update-gitignore-file       Updates '.gitignore' file.
 
-	update-modes:
-		--compare-lcl-and-pg		Downloads playground files and compares content with local files.
-		--compare-lcl-and-int		Downloads qa-int files and compares content with local files.
-		--compare-pg-and-int		Downloads playground and qa-int files and compares content of each file.
-		--download-pg				Download remote playground files.
-		--download-int				Download remote qa-int files.
-		--update-lcl-from-pg		Updates local files from GCP playground.
-		--update-lcl-from-int		Updates local files from GCP qa-int.
-		--update-pg-from-lcl		Updates GCP playground files from local.
-		--update-pg-from-int		Updates GCP playground files from GCP qa-int.
-		--update-gh-from-pg			Updates GitHub files from GCP playground.
-		--update-gh-from-int		Updates GitHub files from GCP qa-int.
-		--update-all-from-int		Updates local, GCP playground and GitHub files from GCP qa-int.
+  update-modes:
+    --compare-lcl-and-pg          Downloads playground files and compares content with local files.
+    --compare-lcl-and-int         Downloads qa-int files and compares content with local files.
+    --compare-pg-and-int          Downloads playground and qa-int files and compares content of each file.
+    --download-pg                 Download remote playground files.
+    --download-int                Download remote qa-int files.
+    --update-lcl-from-pg          Updates local files from GCP playground.
+    --update-lcl-from-int         Updates local files from GCP qa-int.
+    --update-pg-from-lcl          Updates GCP playground files from local.
+    --update-pg-from-int          Updates GCP playground files from GCP qa-int.
+    --update-gh-from-pg           Updates GitHub files from GCP playground.
+    --update-gh-from-int          Updates GitHub files from GCP qa-int.
+    --update-all-from-int         Updates local, GCP playground, and GitHub files from GCP qa-int.
 
-	interaction-modes:
-		--ltl				Set mode to 'LTL' (default value).
-		--tl				Set mode to 'TL'.
-		--push            	Set interaction to 'CARRIER_PUSH'.
-		--pull            	Set interaction to 'CARRIER_PULL' (default value).
+  interaction-modes:
+    --ltl                         Set mode to 'LTL' (default value).
+    --tl                          Set mode to 'TL'.
+    --push                        Set interaction to 'CARRIER_PUSH'.
+    --pull                        Set interaction to 'CARRIER_PULL' (default value).
 
-	services:
-		-r | --rating     	Set service to 'RATING'.
-		-d | --dispatch		Set service to 'DISPATCH'.
-		-t | --tracking		Set service to 'SHIPMENT_STATUS'.
-		-i | --imaging  	Set service to 'IMAGING'.
+  services:
+    -r | --rating                 Set service to 'RATING'.
+    -d | --dispatch               Set service to 'DISPATCH'.
+    -t | --tracking               Set service to 'SHIPMENT_STATUS'.
+    -i | --imaging                Set service to 'IMAGING'.
 
-	carrier:
-		-n | --name <carrier_name>     	Set carrier name (case insensitive; can be set without using flags).
+  carrier:
+    -n | --name=<carrier_name>    Set carrier name (case insensitive; can be set without using flags).
 
 EXAMPLES:
-	gcp2git.sh --tl -r gtjn      		Uses mode='TL', interaction='CARRIER_PULL', service='RATING', carrier='GTJN'.
-	gcp2git.sh --push -d -n EXLA        Uses mode='LTL', interaction='CARRIER_PUSH', service='DISPATCH', carrier='EXLA'.
-	gcp2git.sh --tracking -n gtjn    	Uses mode='LTL', interaction='CARRIER_PULL', service='SHIPMENT_STATUS', carrier='GTJN'.
+  gcp2git.sh --tl -r gtjn         Uses mode='TL', interaction='CARRIER_PULL', service='RATING', carrier='GTJN'.
+  gcp2git.sh --push -d -n EXLA    Uses mode='LTL', interaction='CARRIER_PUSH', service='DISPATCH', carrier='EXLA'.
+  gcp2git.sh --tracking -n gtjn   Uses mode='LTL', interaction='CARRIER_PULL', service='SHIPMENT_STATUS', carrier='GTJN'.
 
 NOTES:
-	- Service name and carrier name are required.
-	- Carrier can be specified without using '-n | --name' flag and is case insensitive.
-	- Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
-	- Git sync option requires git installed.
-
+  - Service name and carrier name are required.
+  - Carrier can be specified without using '-n | --name' flag and is case insensitive.
+  - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
+  - Git sync option requires git installed.
 EOL
 )
 
 # Modes text
 modes_text=$(cat <<EOL
 MODES:
-	--compare-lcl-and-pg		Downloads playground files and compares content with local files.
-	--compare-lcl-and-int		Downloads qa-int files and compares content with local files.
-	--compare-pg-and-int		Downloads playground and qa-int files and compares content of each file.
-	--download-pg				Download remote playground files.
-	--download-int				Download remote qa-int files.
-	--update-lcl-from-pg		Updates local files from GCP playground.
-	--update-lcl-from-int		Updates local files from GCP qa-int.
-	--update-pg-from-lcl		Updates GCP playground files from local.
-	--update-pg-from-int		Updates GCP playground files from GCP qa-int.
-	--update-gh-from-pg			Updates GitHub files from GCP playground.
-	--update-gh-from-int		Updates GitHub files from GCP qa-int.
-	--update-all-from-int		Updates local, GCP playground and GitHub files from GCP qa-int.
-
+  --compare-lcl-and-pg     Downloads playground files and compares content with local files.
+  --compare-lcl-and-int    Downloads qa-int files and compares content with local files.
+  --compare-pg-and-int     Downloads playground and qa-int files and compares content of each file.
+  --download-pg            Download remote playground files.
+  --download-int           Download remote qa-int files.
+  --update-lcl-from-pg     Updates local files from GCP playground.
+  --update-lcl-from-int    Updates local files from GCP qa-int.
+  --update-pg-from-lcl     Updates GCP playground files from local.
+  --update-pg-from-int     Updates GCP playground files from GCP qa-int.
+  --update-gh-from-pg      Updates GitHub files from GCP playground.
+  --update-gh-from-int     Updates GitHub files from GCP qa-int.
+  --update-all-from-int    Updates local, GCP playground, and GitHub files from GCP qa-int.
 EOL
 )
 
@@ -140,34 +138,31 @@ EOL
 gcloud_cli_text=$(cat <<EOL
 GCLOUD CLI INSTALLATION:
 
-	Official documentation:
-	-----------------------
+Official documentation:
+-----------------------
+- gsutil tool: https://cloud.google.com/storage/docs/gsutil
+- gsutil installation: https://cloud.google.com/sdk/docs/install
+- downloading files: https://cloud.google.com/storage/docs/downloading-objects#gcloud_1
 
-	gsutil tool: https://cloud.google.com/storage/docs/gsutil
-	gsutil installation: https://cloud.google.com/sdk/docs/install
-	downloading files: https://cloud.google.com/storage/docs/downloading-objects#gcloud_1
+For Project44:
+--------------
+0) Install apt-transport-https:
+   sudo apt-get install apt-transport-https ca-certificates gnupg
 
-	For Project44:
-	--------------
+1) Add the gcloud CLI distribution URI as a package source:
+   echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 
-	0) Install apt-transport-https:
-		sudo apt-get install apt-transport-https ca-certificates gnupg
+2) Import the Google Cloud public key:
+   curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 
-	1) Add the gcloud CLI distribution URI as a package source:
-		echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+3) Update and install the gcloud CLI:
+   sudo apt-get update && sudo apt-get install google-cloud-cli
 
-	2) Import the Google Cloud public key:
-		curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+- Login to gcloud
+  gcloud auth login my.email@project44.com
 
-	3) Update and install the gcloud CLI:
-		sudo apt-get update && sudo apt-get install google-cloud-cli
-
-	- Login to gcloud
-		gcloud auth login my.email@project44.com
-
-	- List connected accounts
-		gcloud auth list
-
+- List connected accounts
+  gcloud auth list
 EOL
 )
 
