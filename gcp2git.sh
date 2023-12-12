@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.9"
+version="v1.0.10"
 author="Filip Vujic"
-last_updated="11-Dec-2023"
+last_updated="12-Dec-2023"
 repo="https://github.com/filipvujic-p44/gcp2git"
 
 ###################################################################################
@@ -598,11 +598,14 @@ generate_env_file() {
 	fi
 	env_text=$(cat <<EOL
 #!/bin/bash
-# version="v1.0.5"
-# author="Filip Vujic"
-# last_updated="01-Dec-2023"
+# version="$version"
+# author="$author"
+# last_updated="$last_updated"
+# github="$repo"
 
-# modes
+# fields can be overridden by flags
+
+# UPDATE MODES
 COMPARE_LCL_AND_PG=false
 COMPARE_LCL_AND_INT=false
 COMPARE_PG_AND_INT=false
@@ -616,16 +619,19 @@ UPDATE_GH_FROM_PG=false
 UPDATE_GH_FROM_QA_INT=false
 UPDATE_ALL_FROM_QA_INT=false
 
-# urls (defaults: already set)
+# URLS (defaults: already set)
 PLAYGROUND_BASE_URL=""
 QA_INT_BASE_URL=""
 
-# integration details (defaults: mode=LTL, interaction=CARRIER_PULL)
+# INTEGRATION DETAILS (defaults: MODE=LTL, INTERACTION=CARRIER_PULL)
+# modes  = [ LTL, TL ]
 MODE=""
+# interactions = [ CARRIER_PULL, CARRIER_PUSH  ]
 INTERACTION=""
-# for seamless use, define service and carrier
-SERVICE="RATING"
-CARRIER="CARRIER_NAME"
+# services = [ RATING, DISPATCH, TRACKING, IMAGING ]
+SERVICE="MY_SERVICE"
+# carrier scac
+CARRIER="MY_SCAC"
 EOL
 )
 
