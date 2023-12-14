@@ -34,13 +34,17 @@ INFO:
   to a remote branch, based on the current branch name, using a default commit message.
 
   Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
-  For more info on how to set up gcloud cli use --help-gcloud-cli or read:
+  For more info on how to set up gcloud cli use '--help-gcloud-cli' or read:
   https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
   Using '--uninstall' will remove all changes made during install.
+
+REQUIREMENTS:
+  - python3 (for comparing files)
+  - git (for syncing with github repos)
 
 OPTIONS:
   gcp2git.sh [-v | --version] [-h | --help] [--help-modes] [--help-gcloud-cli] 
@@ -64,8 +68,8 @@ OPTIONS (details):
     --install                     Install script to use from anywhere in terminal.
     --uninstall                   Remove changes made during install.
     --chk-for-updates             Check for new script versions.
-    --auto-chk-for-updates-off    Turns off automatic check for updates.
-    --auto-chk-for-updates-on     Check for updates on every script execution (requires internet connection).
+    --auto-chk-for-updates-off    Turns off automatic check for updates (default value).
+    --auto-chk-for-updates-on     Check for updates on every script execution (checks on every run).
     --generate-env-file           Generates '.env_gcp2git' in the current folder.
     --update-gitignore-file       Updates '.gitignore' file.
 
@@ -105,10 +109,10 @@ USAGE (no need for '.sh' if installed):
   gcp2git(.sh) --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
+  - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
   - Service name and carrier scac are required.
   - Carrier can be specified without using '--scac' flag and is case insensitive.
-  - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
-  - Git sync option requires git installed.
+  - Flags are prioritized over .env file values.
 EOL
 )
 
@@ -454,6 +458,16 @@ flg_fresh_gcp_qa_int_download=false
 ###################################### Requirement checks ######################################
 ################################################################################################
 
+
+# Check if python3 is installed
+if ! command -v python3 &> /dev/null; then
+	echo "Info: Python is not installed. Comparing files may not work properly."
+fi
+
+# Check if git is installed
+if ! command -v git &> /dev/null; then
+	echo "Info: Git is not installed. Syncing with GitHub may not work properly."
+fi
 
 # Check if carrier scac is provided
 check_carrier() {
