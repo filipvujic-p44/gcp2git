@@ -1,8 +1,10 @@
 #!/bin/bash
-version="v1.0.10"
+version="v1.0.11"
 author="Filip Vujic"
-last_updated="12-Dec-2023"
-repo="https://github.com/filipvujic-p44/gcp2git"
+last_updated="14-Dec-2023"
+repo_owner="filipvujic-p44"
+repo_name="gcp2git"
+repo="https://github.com/$repo_owner/$repo_name"
 
 ###################################################################################
 ###################################### To Do ######################################
@@ -32,7 +34,7 @@ INFO:
   to a remote branch, based on the current branch name, using a default commit message.
 
   Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
-  For more info on how to set up gcloud cli read:
+  For more info on how to set up gcloud cli use --help-gcloud-cli or read:
   https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
 INSTALLATION:
@@ -40,37 +42,30 @@ INSTALLATION:
   That path will be exported to ~/.bashrc so it can be used from anywhere.
   Using '--uninstall' will remove all changes made during install.
 
-USAGE:
-  gcp2git.sh [--version] [--chk-for-updates]
-             [--auto-chk-for-updates-off]
-             [--auto-chk-for-updates-on]
-             [--help] [--help-gcloud-cli]
-             [--modes] [--install] [--uninstall]
-             [--generate-env-file] [--update-gitignore-file]
-             [--compare-lcl-and-pg] [--compare-lcl-and-int]
-             [--compare-pg-and-int]
-             [--download-pg] [--download-int]
-             [--update-lcl-from-pg] [--update-lcl-from-int]
-             [--update-pg-from-lcl] [--update-pg-from-int]
-             [--update-gh-from-pg] [--update-gh-from-int]
-             [--update-all-from-int]
-             [--ltl] [--tl] [--push] [--pull]
-             [-r | --rating] [-d | --dispatch]
-             [-t | --tracking] [-i | --imaging]
-             [-n | --name=<carrier_name>]
-             <carrier_name>
-
 OPTIONS:
+  gcp2git.sh [-v | --version] [-h | --help] [--help-modes] [--help-gcloud-cli] 
+             [--install] [--uninstall] [--chk-for-updates] 
+             [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
+             [--generate-env-file] [--update-gitignore-file] 
+             [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
+             [--download-pg] [--download-int] 
+             [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
+             [--update-pg-from-int] [--update-gh-from-pg] [--update-gh-from-int] 
+             [--update-all-from-int] [--ltl] [--tl] [--carrier-push] 
+             [--carrier-pull] [--rating] [--dispatch] [--tracking] [--imaging] 
+             [--scac=<carrier_scac>] <carrier_scac>
+
+OPTIONS (details):
   general:
     -v | --version                Display script version and author.
+    -h | --help                   Display help and usage info.
+    --help-modes                  Display available update modes.
+    --help-gcloud-cli             Display gcloud cli help.
+    --install                     Install script to use from anywhere in terminal.
+    --uninstall                   Remove changes made during install.
     --chk-for-updates             Check for new script versions.
     --auto-chk-for-updates-off    Turns off automatic check for updates.
     --auto-chk-for-updates-on     Check for updates on every script execution (requires internet connection).
-    -h | --help                   Display help and usage info.
-    --help-gcloud-cli             Display gcloud cli help.
-    --modes                       Display available update modes.
-    --install                     Install script to use from anywhere in terminal.
-    --uninstall                   Remove changes made during install.
     --generate-env-file           Generates '.env_gcp2git' in the current folder.
     --update-gitignore-file       Updates '.gitignore' file.
 
@@ -91,26 +86,27 @@ OPTIONS:
   interaction-modes:
     --ltl                         Set mode to 'LTL' (default value).
     --tl                          Set mode to 'TL'.
-    --push                        Set interaction to 'CARRIER_PUSH'.
-    --pull                        Set interaction to 'CARRIER_PULL' (default value).
+    --carrier-push                Set interaction to 'CARRIER_PUSH'.
+    --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
 
   services:
-    -r | --rating                 Set service to 'RATING'.
-    -d | --dispatch               Set service to 'DISPATCH'.
-    -t | --tracking               Set service to 'SHIPMENT_STATUS'.
-    -i | --imaging                Set service to 'IMAGING'.
+    --rating                      Set service to 'RATING'.
+    --dispatch                    Set service to 'DISPATCH'.
+    --tracking                    Set service to 'SHIPMENT_STATUS'.
+    --imaging                     Set service to 'IMAGING'.
 
   carrier:
-    -n | --name=<carrier_name>    Set carrier name (case insensitive; can be set without using flags).
+    --scac=<carrier_scac>         Set carrier scac (case insensitive; can be set without using flags).
 
-EXAMPLES:
-  gcp2git.sh --tl -r gtjn         Uses mode='TL', interaction='CARRIER_PULL', service='RATING', carrier='GTJN'.
-  gcp2git.sh --push -d -n EXLA    Uses mode='LTL', interaction='CARRIER_PUSH', service='DISPATCH', carrier='EXLA'.
-  gcp2git.sh --tracking -n gtjn   Uses mode='LTL', interaction='CARRIER_PULL', service='SHIPMENT_STATUS', carrier='GTJN'.
+USAGE (no need for '.sh' if installed):
+  gcp2git(.sh) abfs --imaging --compare-lcl-and-pg
+  gcp2git(.sh) --tl --rating --download-pg gtjn
+  gcp2git(.sh) --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
+  gcp2git(.sh) --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
-  - Service name and carrier name are required.
-  - Carrier can be specified without using '-n | --name' flag and is case insensitive.
+  - Service name and carrier scac are required.
+  - Carrier can be specified without using '--scac' flag and is case insensitive.
   - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
   - Git sync option requires git installed.
 EOL
@@ -204,20 +200,20 @@ if [ -e ".env_gcp2git" ]; then
 	# echo "Loading values from local .env file."
 	source .env_gcp2git
 
-	# set update modes from .env
+	# Set update modes from .env
 
 	# Load compare local and pg value
-	if [ ! -z "COMPARE_LCL_AND_PG" ]; then
+	if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
 		flg_compare_lcl_and_pg="$COMPARE_LCL_AND_PG"
 	fi
 
 	# Load compare local and int value
-	if [ ! -z "COMPARE_LCL_AND_INT" ]; then
+	if [ ! -z "$COMPARE_LCL_AND_INT" ]; then
 		flg_compare_lcl_and_int="$COMPARE_LCL_AND_INT"
 	fi
 
 	# Load compare pg and int value
-	if [ ! -z "COMPARE_PG_AND_INT" ]; then
+	if [ ! -z "$COMPARE_PG_AND_INT" ]; then
 		flg_compare_pg_and_int="$COMPARE_PG_AND_INT"
 	fi
 
@@ -266,38 +262,38 @@ if [ -e ".env_gcp2git" ]; then
 		flg_update_all_from_qa_int="$UPDATE_ALL_FROM_QA_INT"
 	fi
 
-	# set urls from .env
+	# Set URLs from .env
 
-	# Load playground base url value
+	# Load playground base URL value
 	if [ ! -z "$PLAYGROUND_BASE_URL" ]; then
 		playground_base_url="$PLAYGROUND_BASE_URL"
 	fi
 
-	# Load qa int base url value
+	# Load qa int base URL value
 	if [ ! -z "$QA_INT_BASE_URL" ]; then
 		qa_int_base_url="$QA_INT_BASE_URL"
 	fi
 
-	# set integration details from .env
+	# Set integration details from .env
 
 	# Load mode value
 	if [ ! -z "$MODE" ]; then
-    		mode="$MODE"
+		mode="$MODE"
 	fi
 
 	# Load interaction value
 	if [ ! -z "$INTERACTION" ]; then
-    		interaction="$INTERACTION"
+		interaction="$INTERACTION"
 	fi
 
 	# Load service value
 	if [ ! -z "$SERVICE" ]; then
-    		service="$SERVICE"
+		service="$SERVICE"
 	fi
 
 	# Load carrier value
-	if [ ! -z "$CARRIER" ]; then
-    		carrier="$CARRIER"
+	if [ ! -z "$SCAC" ]; then
+		carrier="$SCAC"
 	fi
 fi
 
@@ -310,38 +306,16 @@ while [ "$1" != "" ]; do
 			echo "github: $repo"
 			exit 0
 			;;
-		--chk-for-updates)
-			flg_chk_for_updates=true
-			;;
-		--auto-chk-for-updates-off)
-			ref_line_number=$(grep -n "ref_chk_for_updates*" $0 | head -n1 | cut -d':' -f1)
-			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
-			echo $line_number
-			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
-				sed -i "${line_number}s/flg_chk_for_updates=true/flg_chk_for_updates=false/" "$0"
-				echo "Info: Auto check for updates turned off."	
-			fi
-			exit 0
-			;;
-		--auto-chk-for-updates-on)
-			ref_line_number=$(grep -n "ref_chk_for_updates*" $0 | head -n1 | cut -d':' -f1)
-			line_number=$(grep -n "flg_chk_for_updates=" $0 | head -n1 | cut -d':' -f1)
-			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
-				sed -i "${line_number}s/flg_chk_for_updates=false/flg_chk_for_updates=true/" "$0"
-				echo "Info: Auto check for updates turned on."
-			fi
-			exit 0
-			;;
 		-h | --help)
 			echo "$help_text"
 			exit 0
 			;;
-		--help-gcloud-cli)
-			echo "$gcloud_cli_text"
+		--help-modes)
+			echo "$modes_text"
 			exit 0
 			;;
-		--modes)
-			echo "$modes_text"
+		--help-gcloud-cli)
+			echo "$gcloud_cli_text"
 			exit 0
 			;;
 		--install)
@@ -349,6 +323,27 @@ while [ "$1" != "" ]; do
 			;;
 		--uninstall)
 			do_uninstall=true
+			;;
+		--chk-for-updates)
+			flg_chk_for_updates=true
+			;;
+		--auto-chk-for-updates-off)
+			ref_line_number=$(grep -n "ref_chk_for_updates*" "$0" | head -n1 | cut -d':' -f1)
+			line_number=$(grep -n "flg_chk_for_updates=" "$0" | head -n1 | cut -d':' -f1)
+			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
+				sed -i "${line_number}s/flg_chk_for_updates=true/flg_chk_for_updates=false/" "$0"
+				echo "Info: Auto check for updates turned off."	
+			fi
+			exit 0
+			;;
+		--auto-chk-for-updates-on)
+			ref_line_number=$(grep -n "ref_chk_for_updates*" "$0" | head -n1 | cut -d':' -f1)
+			line_number=$(grep -n "flg_chk_for_updates=" "$0" | head -n1 | cut -d':' -f1)
+			if [ "$((line_number - ref_line_number))" -eq 1 ]; then
+				sed -i "${line_number}s/flg_chk_for_updates=false/flg_chk_for_updates=true/" "$0"
+				echo "Info: Auto check for updates turned on."
+			fi
+			exit 0
 			;;
 		--generate-env-file)
 			flg_generate_env_file=true
@@ -398,25 +393,25 @@ while [ "$1" != "" ]; do
 		--tl)
 			mode="TL"
 			;;
-		--push)
+		--carrier-push)
 			interaction="CARRIER_PUSH"
 			;;
-		--pull)
+		--carrier-pull)
 			interaction="CARRIER_PULL"
 			;;
-		-r | --rating)
+		--rating)
 			service="RATING"
 			;;
-		-d | --dispatch)
-				service="DISPATCH"
+		--dispatch)
+			service="DISPATCH"
 			;;
-		-t | --tracking)
-				service="SHIPMENT_STATUS"
+		--tracking)
+			service="SHIPMENT_STATUS"
 			;;
-		-i | --imaging)
-				service="IMAGING"
+		--imaging)
+			service="IMAGING"
 			;;
-		-n | --name)
+		--scac)
 			carrier="${2^^}"
 			;;
 		*)
@@ -460,10 +455,10 @@ flg_fresh_gcp_qa_int_download=false
 ################################################################################################
 
 
-# Check if carrier name is provided
+# Check if carrier scac is provided
 check_carrier() {
 	if [ "$carrier" == "" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ]; then
-		echo "Error: No carrier name provided!"
+		echo "Error: No carrier scac provided!"
 		exit 1
 	fi
 }
@@ -484,7 +479,7 @@ if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] && [ "$do
 [ "$flg_update_lcl_from_qa_int" != "true" ] && [ "$flg_update_pg_from_lcl" != "true" ] &&
 [ "$flg_update_pg_from_qa_int" != "true" ] && [ "$flg_update_gh_from_pg" != "true" ] &&
 [ "$flg_update_gh_from_qa_int" != "true" ] && [ "$flg_update_all_from_qa_int" != "true" ]; then
-	echo "Error: No update mode specified! Please use --help or --modes flag to see available update modes."
+	echo "Error: No update mode specified! Please use --help or --help-modes flag to see available update modes."
 	exit 1
 fi
 
@@ -566,12 +561,12 @@ autocomplete() {
 	local cur prev words cword
 	_init_completion || return
 
-	local options="--version --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-	options+="--help --help-gcloud-cli --modes --install --uninstall --generate-env-file "
+	local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
+	options+="--help -h --help-gcloud-cli --help-modes --install --uninstall --generate-env-file "
 	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
-	options+="--ltl --tl --push --pull --rating --dispatch --tracking --imaging --name"
+	options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
 	COMPREPLY=(\$(compgen -W "\$options" -- "\$cur"))
     	return 0
@@ -626,7 +621,7 @@ INTERACTION=""
 # services = [ RATING, DISPATCH, TRACKING, IMAGING ]
 SERVICE="MY_SERVICE"
 # carrier scac
-CARRIER="MY_SCAC"
+SCAC="MY_SCAC"
 EOL
 )
 
@@ -641,13 +636,9 @@ EOL
 
 
 check_for_updates() {
-	local repo_owner="filipvujic-p44"
-	local repo_name="gcp2git"
 	local local_version=$(echo "$version" | sed 's/^v//')
 	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
-
 	local version_result=$(awk -v v1="$local_version" -v v2="$remote_version" 'BEGIN {if (v1==v2) {result=0; exit;}; split(v1, a, "."); split(v2, b, "."); for (i=1; i<=length(a); i++) {if (a[i]<b[i]) {result=1; exit;}} {result=0; exit;}} END {print result}')
-
 	case $version_result in
 		0) echo "Info: You already have the latest script version ($version).";;
 		1) echo "Info: New version available (v$remote_version). Please visit '$repo/releases' for more info.";;
