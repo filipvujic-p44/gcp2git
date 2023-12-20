@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.11"
+version="v1.0.12"
 author="Filip Vujic"
-last_updated="14-Dec-2023"
+last_updated="20-Dec-2023"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -29,25 +29,24 @@ INFO:
   last updated: $last_updated
   github: $repo
 
-  This script is used for syncing GCP files with local/remote git files. Based on params, it downloads files
-  from GCP and updates file contents for local git files. Optionally, it can commit and push the updated files
-  to a remote branch, based on the current branch name, using a default commit message.
-
+  This script is used as a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
+  
   Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
   For more info on how to set up gcloud cli use '--help-gcloud-cli' or read:
   https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
+
+REQUIREMENTS:
+  - gcloud cli (use '--help-gcloud-cli' for more details)
+  - python3 (for comparing files)
+  - git (for syncing with github repos)
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
   Using '--uninstall' will remove all changes made during install.
 
-REQUIREMENTS:
-  - python3 (for comparing files)
-  - git (for syncing with github repos)
-
 OPTIONS:
-  gcp2git.sh [-v | --version] [-h | --help] [--help-modes] [--help-gcloud-cli] 
+  gcp2git.sh [-v | --version] [-h | --help] [--help-actions] [--help-gcloud-cli] 
              [--install] [--uninstall] [--chk-for-updates] 
              [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
              [--generate-env-file] [--update-gitignore-file] 
@@ -63,7 +62,7 @@ OPTIONS (details):
   general:
     -v | --version                Display script version and author.
     -h | --help                   Display help and usage info.
-    --help-modes                  Display available update modes.
+    --help-actions                Display available actions.
     --help-gcloud-cli             Display gcloud cli help.
     --install                     Install script to use from anywhere in terminal.
     --uninstall                   Remove changes made during install.
@@ -73,7 +72,7 @@ OPTIONS (details):
     --generate-env-file           Generates '.env_gcp2git' in the current folder.
     --update-gitignore-file       Updates '.gitignore' file.
 
-  update-modes:
+  actions:
     --compare-lcl-and-pg          Downloads playground files and compares content with local files.
     --compare-lcl-and-int         Downloads qa-int files and compares content with local files.
     --compare-pg-and-int          Downloads playground and qa-int files and compares content of each file.
@@ -109,16 +108,17 @@ USAGE (no need for '.sh' if installed):
   gcp2git(.sh) --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
+  - Tested on WSL Ubuntu 22.04
   - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
-  - Service name and carrier scac are required.
+  - Carrier scac, service name and action are required.
   - Carrier can be specified without using '--scac' flag and is case insensitive.
   - Flags are prioritized over .env file values.
 EOL
 )
 
 # Modes text
-modes_text=$(cat <<EOL
-MODES:
+actions_text=$(cat <<EOL
+ACTIONS:
   --compare-lcl-and-pg     Downloads playground files and compares content with local files.
   --compare-lcl-and-int    Downloads qa-int files and compares content with local files.
   --compare-pg-and-int     Downloads playground and qa-int files and compares content of each file.
@@ -204,7 +204,7 @@ if [ -e ".env_gcp2git" ]; then
 	# echo "Loading values from local .env file."
 	source .env_gcp2git
 
-	# Set update modes from .env
+	# Set actions from .env
 
 	# Load compare local and pg value
 	if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
@@ -314,8 +314,8 @@ while [ "$1" != "" ]; do
 			echo "$help_text"
 			exit 0
 			;;
-		--help-modes)
-			echo "$modes_text"
+		--help-actions)
+			echo "$actions_text"
 			exit 0
 			;;
 		--help-gcloud-cli)
@@ -485,7 +485,7 @@ check_service() {
 	fi
 }
 
-# Check if install/uninstall or update mode is set
+# Check if install/uninstall or action is set
 if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ] &&
 [ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] && [ "$flg_compare_lcl_and_pg" != "true" ] &&
 [ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
@@ -493,7 +493,7 @@ if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] && [ "$do
 [ "$flg_update_lcl_from_qa_int" != "true" ] && [ "$flg_update_pg_from_lcl" != "true" ] &&
 [ "$flg_update_pg_from_qa_int" != "true" ] && [ "$flg_update_gh_from_pg" != "true" ] &&
 [ "$flg_update_gh_from_qa_int" != "true" ] && [ "$flg_update_all_from_qa_int" != "true" ]; then
-	echo "Error: No update mode specified! Please use --help or --help-modes flag to see available update modes."
+	echo "Error: No action specified! Please use --help or --help-actions flag to see available actions."
 	exit 1
 fi
 
@@ -576,7 +576,7 @@ autocomplete() {
 	_init_completion || return
 
 	local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-	options+="--help -h --help-gcloud-cli --help-modes --install --uninstall --generate-env-file "
+	options+="--help -h --help-gcloud-cli --help-actions --install --uninstall --generate-env-file "
 	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
@@ -609,7 +609,7 @@ generate_env_file() {
 
 # fields can be overridden by flags
 
-# UPDATE MODES
+# ACTIONS
 COMPARE_LCL_AND_PG=false
 COMPARE_LCL_AND_INT=false
 COMPARE_PG_AND_INT=false
