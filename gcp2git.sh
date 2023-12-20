@@ -101,11 +101,11 @@ OPTIONS (details):
   carrier:
     --scac=<carrier_scac>         Set carrier scac (case insensitive; can be set without using flags).
 
-USAGE (no need for '.sh' if installed):
-  gcp2git(.sh) abfs --imaging --compare-lcl-and-pg
-  gcp2git(.sh) --tl --rating --download-pg gtjn
-  gcp2git(.sh) --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-  gcp2git(.sh) --tracking --scac gtjn --update-gh-from-pg
+USAGE:
+  gcp2git.sh abfs --imaging --compare-lcl-and-pg
+  gcp2git.sh --tl --rating --download-pg gtjn
+  gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
+  gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
   - Tested on WSL Ubuntu 22.04
