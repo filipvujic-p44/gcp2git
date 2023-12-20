@@ -525,14 +525,14 @@ install_script() {
 	cp ./gcp2git.sh ~/gcp2git/main
 	generate_autocomplete_script
 	echo "Info: Setting up '~/gcp2git' directory completed."
-	generate_env_file
 	echo "Info: Adding paths to '~/.bashrc'..."
 	echo "# gcp2git script" >> ~/.bashrc
 	echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
 	echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
 	echo "Info: Paths added to '~/.bashrc'."
-	echo "Info: Success. Script installed in '~/gcp2git' folder. Env file '.env_gcp2git' generated in current folder."
+	echo "Info: Success. Script installed in '~/gcp2git' folder."
 	echo "Info: Log in again to apply changes. You can remove the current script file."
+	echo "Info: Use '-h' or '--help' to get started."
 	exit 0
 }
 
