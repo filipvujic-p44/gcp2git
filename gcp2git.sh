@@ -681,6 +681,7 @@ check_args() {
         	fi
         done
 }
+
 # Generic function. Downloads files from GCP.
 # $1 - gcp url (environment)
 # $2 - local target folder
@@ -1033,7 +1034,6 @@ update_github() {
 if [ "$flg_chk_for_updates" == "true" ]; then
 	check_for_updates
 fi
-
 
 # Install
 if [ "$do_install" == "true" ]; then
