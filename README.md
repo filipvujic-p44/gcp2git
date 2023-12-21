@@ -6,11 +6,6 @@ INFO:
 
   This script is used as a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
 
-REQUIREMENTS:
-  - gcloud cli (use '--help-gcloud-cli' for more details)
-  - python3 (for comparing files)
-  - git (for syncing with github repos)
-
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
