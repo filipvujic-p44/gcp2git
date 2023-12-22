@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.13"
+version="v1.0.14"
 author="Filip Vujic"
-last_updated="21-Dec-2023"
+last_updated="22-Dec-2023"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -31,23 +31,26 @@ INFO:
 
   This script is used as a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
   
-  Script requires that you are logged into gcloud cli (check with 'gcloud auth list').
-  For more info on how to set up gcloud cli use '--help-gcloud-cli' or read:
+  Script requires that you are logged into GCloud CLI (check with 'gcloud auth list').
+  For more info on how to set up GCloud CLI use '--help-gcloud-cli' or read:
   https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
 REQUIREMENTS:
-  - gcloud cli (use '--help-gcloud-cli' for more details)
+  - gcloud (use '--help-gcloud-cli' for more details)
   - python3 (for comparing files)
   - git (for syncing with github repos)
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
-  Using '--uninstall' will remove all changes made during install.
+  Script requires gcloud, python3 and git installed, so it will install those packages.
+  Use '--install-y' to preapprove dependencies and run GCloud CLI login in the end..
+  Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
+  You can remove gcloud, python3 and git dependencies manually, if needed.
 
 OPTIONS:
   gcp2git.sh [-v | --version] [-h | --help] [--help-actions] [--help-gcloud-cli] 
-             [--install] [--uninstall] [--chk-for-updates] 
+             [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
              [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
              [--generate-env-file] [--update-gitignore-file] 
              [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
@@ -63,9 +66,11 @@ OPTIONS (details):
     -v | --version                Display script version and author.
     -h | --help                   Display help and usage info.
     --help-actions                Display available actions.
-    --help-gcloud-cli             Display gcloud cli help.
+    --help-gcloud-cli             Display GCloud CLI help.
     --install                     Install script to use from anywhere in terminal.
-    --uninstall                   Remove changes made during install.
+    --install-y				  	  Preapproves dependencies and runs 'gcloud auth login' after installation.
+    --uninstall                   Remove changes made during install (except dependencies: gcloud, python3, git).
+	--chk-install		  		  Check if script and requirements are installed correctly.
     --chk-for-updates             Check for new script versions.
     --auto-chk-for-updates-off    Turns off automatic check for updates (default value).
     --auto-chk-for-updates-on     Check for updates on every script execution (checks on every run).
@@ -134,35 +139,37 @@ ACTIONS:
 EOL
 )
 
-# Gcloud cli help text
+# GCloud CLI help text
 gcloud_cli_text=$(cat <<EOL
 GCLOUD CLI INSTALLATION:
 
-Official documentation:
------------------------
-- gsutil tool: https://cloud.google.com/storage/docs/gsutil
-- gsutil installation: https://cloud.google.com/sdk/docs/install
-- downloading files: https://cloud.google.com/storage/docs/downloading-objects#gcloud_1
+  For automatic installation, use '--install' or '--install-y' option.
 
-For Project44:
---------------
-0) Install apt-transport-https:
-   sudo apt-get install apt-transport-https ca-certificates gnupg
+  Official documentation:
+  -----------------------
+  - gsutil tool: https://cloud.google.com/storage/docs/gsutil
+  - gsutil installation: https://cloud.google.com/sdk/docs/install
+  - downloading files: https://cloud.google.com/storage/docs/downloading-objects#gcloud_1
 
-1) Add the gcloud CLI distribution URI as a package source:
-   echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  For Project44:
+  --------------
+  0) Install apt-transport-https:
+     sudo apt install apt-transport-https ca-certificates gnupg curl
 
-2) Import the Google Cloud public key:
-   curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+  1) Add the GCloud CLI distribution URI as a package source:
+     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 
-3) Update and install the gcloud CLI:
-   sudo apt-get update && sudo apt-get install google-cloud-cli
+  2) Import the Google Cloud public key:
+     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
 
-- Login to gcloud
-  gcloud auth login my.email@project44.com
+  3) Update and install the GCloud CLI:
+     sudo apt update && sudo apt install google-cloud-cli
 
-- List connected accounts
-  gcloud auth list
+  - Login to GCloud CLI
+    gcloud auth login my.email@project44.com
+
+  - List connected accounts
+    gcloud auth list
 EOL
 )
 
@@ -174,7 +181,9 @@ EOL
 
 # Initialize variables to default values
 do_install=false
+do_install_y=false
 do_uninstall=false
+do_chk_install_=false
 # ref_chk_for_updates (do not change comment)
 flg_chk_for_updates=false
 flg_generate_env_file=false
@@ -325,8 +334,14 @@ while [ "$1" != "" ]; do
 		--install)
 			do_install=true
 			;;
+		--install-y)
+			do_install_y=true
+			;;
 		--uninstall)
 			do_uninstall=true
+			;;
+		--chk-install)
+			do_chk_install=true
 			;;
 		--chk-for-updates)
 			flg_chk_for_updates=true
@@ -455,40 +470,29 @@ flg_fresh_gcp_qa_int_download=false
 
 
 ################################################################################################
-###################################### Requirement checks ######################################
+###################################### Requirement check functions #############################
 ################################################################################################
 
 
-# Check if python3 is installed
-if ! command -v python3 &> /dev/null; then
-	echo "Info: Python is not installed. Comparing files may not work properly."
-fi
-
-# Check if git is installed
-if ! command -v git &> /dev/null; then
-	echo "Info: Git is not installed. Syncing with GitHub may not work properly."
-fi
-
-# Check if carrier scac is provided
-check_carrier() {
-	if [ "$carrier" == "" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ]; then
-		echo "Error: No carrier scac provided!"
-		exit 1
-	fi
+# Check if GCloud CLI is installed
+check_gcloud_installed() {
+	command -v gcloud &> /dev/null
 }
 
-# Check if service name is provided
-check_service() {
-	if [ "$service" == "" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ]; then
-		echo "Error: No service name provided!"
-		exit 1
-	fi
+# Check if python3 is installed
+check_python_installed() {
+	command -v python3 &> /dev/null
+}
+
+# Check if git is installed
+check_git_installed() {
+	command -v git &> /dev/null
 }
 
 # Check if install/uninstall or action is set
-if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ] &&
-[ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] && [ "$flg_compare_lcl_and_pg" != "true" ] &&
-[ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
+if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] &&  [ "$do_install_y" == "true" ] && [ "$do_uninstall" != "true" ] && 
+[ "$do_chk_install" != "true" ] && [ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] && 
+[ "$flg_compare_lcl_and_pg" != "true" ] && [ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
 [ "$flg_download_pg" != "true" ] && [ "$flg_download_qa_int" != "true" ] && [ "$flg_update_lcl_from_pg" != "true" ] &&
 [ "$flg_update_lcl_from_qa_int" != "true" ] && [ "$flg_update_pg_from_lcl" != "true" ] &&
 [ "$flg_update_pg_from_qa_int" != "true" ] && [ "$flg_update_gh_from_pg" != "true" ] &&
@@ -506,6 +510,10 @@ fi
 # Main installation function
 install_script() {
 	echo "Info: Installing gcp2git..."
+	script_directory="$(dirname "$(readlink -f "$0")")"
+	if ! check_gcloud_installed || ! check_python_installed || ! check_git_installed; then
+		install_requirements
+	fi
 	if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ] &&
 	grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
 	grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
@@ -522,7 +530,7 @@ install_script() {
 	mkdir ~/gcp2git
 	mkdir ~/gcp2git/main
 	mkdir ~/gcp2git/util
-	cp ./gcp2git.sh ~/gcp2git/main
+	cp $script_directory/gcp2git.sh ~/gcp2git/main
 	generate_autocomplete_script
 	echo "Info: Setting up '~/gcp2git' directory completed."
 	echo "Info: Adding paths to '~/.bashrc'..."
@@ -531,9 +539,95 @@ install_script() {
 	echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
 	echo "Info: Paths added to '~/.bashrc'."
 	echo "Info: Success. Script installed in '~/gcp2git' folder."
-	echo "Info: Log in again to apply changes. You can remove the current script file."
+	echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
+	echo "Info: Use 'gcloud auth list' to check if you are logged in."
+	echo "Info: Log in again to apply changes (if on wsl, do 'wsl --shutdown' and reopen in 10s)." 
+	echo "Info: You can remove the current script file."
 	echo "Info: Use '-h' or '--help' to get started."
+	if [ "$do_install_y" == "true" ]; then
+		echo "Info: Setting up GCloud CLI login..."
+		echo "Q: Input your p44 email:"
+		read email
+		gcloud auth login $email
+		if gcloud auth list | grep -q "$email"; then
+			echo "Info: Logged in to GCloud CLI."
+		else
+			echo "Error: Something went wrong during GCloud CLI login attempt."
+		fi
+	fi
 	exit 0
+}
+
+install_gcloud() {
+	if ! check_gcloud_installed; then
+		sudo apt update
+		echo "Info: Installing GCloud CLI..."
+		#Install apt-transport-https:
+		if [ "$do_install_y" == "true" ]; then
+			sudo apt install -y apt-transport-https ca-certificates gnupg curl
+		else
+			sudo apt install apt-transport-https ca-certificates gnupg curl
+		fi
+		#Add the GCloud CLI distribution URI as a package source:
+		if [ -f "/etc/apt/sources.list.d/google-cloud-sdk.list" ] && grep -q "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" /etc/apt/sources.list.d/google-cloud-sdk.list; then
+		    :
+		else
+		    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+		fi
+		#Import the Google Cloud public key:
+		curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+		#Update and install the GCloud CLI:
+		sudo apt update && sudo apt install google-cloud-cli
+		if command -v gcloud &> /dev/null; then
+			echo "Info: GCloud CLI installed."
+			echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
+			echo "Info: Use 'gcloud auth list' to check if you are logged in."
+		else
+			echo "Error: Something went wrong during installation. Consider using '--help-gcloud-cli' option and run the steps manually."
+			exit 1
+		fi
+	else
+		echo "Info: GCloud CLI already installed."
+		exit 0
+	fi
+}
+
+install_python() {
+	echo "Info: Installing python..."
+	if [ "$do_install_y" == "true" ]; then
+		sudo apt install -y python3
+	else
+		sudo apt install python3
+	fi
+	echo "Info: Python installed."
+}
+
+install_git() {
+	echo "Info: Installing git..."
+	if [ "$do_install_y" == "true" ]; then
+		sudo apt install -y git
+	else
+		sudo apt install git
+	fi
+	echo "Info: Git installed."
+}
+
+install_requirements() {
+	sudo apt update
+	# Check if GCloud CLI is installed
+	if ! check_gcloud_installed; then
+		install_gcloud
+	fi
+	
+	# Check if python3 is installed
+	if ! check_python_installed; then
+		install_python
+	fi
+	
+	# Check if git is installed
+	if ! check_git_installed; then
+		install_git
+	fi
 }
 
 # Cleans up existing installation and leftover files/changes
@@ -556,11 +650,11 @@ clean_up_installation() {
 	echo "Info: Cleanup completed."
 }
 
-
 # Main uninstall function
 uninstall_script() {
 	echo "Info: Uninstaling script..."
 	clean_up_installation
+	echo "Info: Script required gcloud, python3 and git installed. You can remove these packages manually if needed."
 	echo "Info: Uninstall completed."
 	exit 0
 }
@@ -576,7 +670,7 @@ autocomplete() {
 	_init_completion || return
 
 	local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-	options+="--help -h --help-gcloud-cli --help-actions --install --uninstall --generate-env-file "
+	options+="--help -h --help-gcloud-cli --help-actions --install --install-y --uninstall --chk-install --generate-env-file "
 	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
@@ -638,9 +732,52 @@ SERVICE="MY_SERVICE"
 SCAC="MY_SCAC"
 EOL
 )
-
 	echo "$env_text" >> ./.env_gcp2git
 	echo "Info: Generated '.env_gcp2git' file."
+}
+
+check_installation() {
+	local cnt_missing=0
+	if check_gcloud_installed; then
+		echo "Info: GCloud CLI ------------- OK."
+	else
+		echo "Error: GCloud CLI ------------ NOT FOUND."
+		((cnt_missing++))
+	fi
+
+	if check_python_installed; then
+		echo "Info: Python ----------------- OK."
+	else
+		echo "Error: Python ---------------- NOT FOUND."
+		((cnt_missing++))
+	fi
+
+	if check_git_installed; then
+		echo "Info: Git -------------------- OK."
+	else
+		echo "Error: Git ------------------- NOT FOUND."
+		((cnt_missing++))
+	fi
+		
+	if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
+		echo "Info: Folder ~/.gcp2git ------ OK."
+	else
+		echo "Error: Folder ~/.gcp2git ----- NOT OK."
+		((cnt_missing++))
+	fi
+
+	if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
+		grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+		echo "Info: File ~/.bashrc --------- OK."
+	else
+		echo "Error: File ~/.bashrc -------- NOT OK."
+		((cnt_missing++))
+	fi	
+
+	if [ "$cnt_missing" -gt "0" ]; then
+		echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
+	fi
+	exit 0
 }
 
 
@@ -1025,10 +1162,48 @@ update_github() {
 }
 
 
+###############################################################################################################
+############################################ Action requirements check  #######################################
+###############################################################################################################
+
+
+check_action_requirements() {
+	if ! check_gcloud_installed; then
+		echo "Info: GCloud CLI is not installed. It is required for GCP access."
+	fi
+
+	if ! check_python_installed; then
+		echo "Info: Python is not installed. Comparing files may not work properly."
+	fi
+
+	if ! check_git_installed; then
+		echo "Info: Git is not installed. Syncing with GitHub may not work properly."
+	fi
+
+	# Check if carrier scac is provided
+	check_carrier() {
+		if [ "$carrier" == "" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ]; then
+			echo "Error: No carrier scac provided!"
+			exit 1
+		fi
+	}
+
+	# Check if service name is provided
+	check_service() {
+		if [ "$service" == "" ] && [ "$do_install" != "true" ] && [ "$do_uninstall" != "true" ]; then
+			echo "Error: No service name provided!"
+			exit 1
+		fi
+	}
+}
+
+
 ###########################################################################################################################
 ############################################ Flags checks and function calls ##############################################
 ###########################################################################################################################
 
+
+# General
 
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
@@ -1036,7 +1211,7 @@ if [ "$flg_chk_for_updates" == "true" ]; then
 fi
 
 # Install
-if [ "$do_install" == "true" ]; then
+if [ "$do_install" == "true" ] || [ "$do_install_y" == "true" ]; then
 	install_script
 fi
 
@@ -1045,10 +1220,19 @@ if [ "$do_uninstall" == "true" ]; then
 	uninstall_script
 fi
 
+# Install GCloud CLI
+if [ "$do_chk_install" == "true" ]; then
+	check_installation
+fi
+
 # Generate env file
 if [ "$flg_generate_env_file" == "true" ]; then
 	generate_env_file
 fi
+
+# Action calls
+
+check_action_requirements
 
 # Compare local and playground
 if [ "$flg_compare_lcl_and_pg" == "true" ]; then
