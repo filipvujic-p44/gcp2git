@@ -6,16 +6,6 @@ repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
 
-###################################################################################
-###################################### To Do ######################################
-###################################################################################
-
-
-# automatic updates install
-# verbose mode
-# log mode
-# dynamic env file name
-
 
 ###########################################################################################
 ###################################### Info and help ######################################
@@ -37,17 +27,6 @@ REQUIREMENTS:
   - python3 (for comparing files)
   - git (for syncing with github repos)
   - bash-completion (for autocomplete)
-
-  GCloud CLI - required for accessing GCP files. You have to be logged into GCloud CLI (check with 'gcloud auth list').
-  For more info on how to set up GCloud CLI use '--help-gcloud-cli' or read:
-  https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
-
-  Python - required for json file comparison. It is used to format json files before comparing.
-  Otherwise, there could be a false positive due to different file formatting.
-
-  Git - required for access to GitHub repos and commiting/pushing changes.
-
-  Bash-completion - optional, but installed by default. Provides autocomplete functionality.
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
@@ -150,34 +129,26 @@ EOL
 
 # GCloud CLI help text
 gcloud_cli_text=$(cat <<EOL
-GCLOUD CLI INSTALLATION:
-  For automatic installation, use '--install' or '--install-y' option.
+GCLOUD CLI USAGE:
+  GCloud CLI is required to access remote GCP files.
 
   Official documentation:
   -----------------------
   - gsutil tool: https://cloud.google.com/storage/docs/gsutil
   - gsutil installation: https://cloud.google.com/sdk/docs/install
-  - downloading files: https://cloud.google.com/storage/docs/downloading-objects#gcloud_1
+  - gcloud: https://cloud.google.com/storage/docs/discover-object-storage-gcloud
 
   For Project44:
   --------------
-  0) Install apt-transport-https:
-     sudo apt install apt-transport-https ca-certificates gnupg curl
-
-  1) Add the GCloud CLI distribution URI as a package source:
-     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-
-  2) Import the Google Cloud public key:
-     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-
-  3) Update and install the GCloud CLI:
-     sudo apt update && sudo apt install google-cloud-cli
-
   - Login to GCloud CLI
     gcloud auth login my.email@project44.com
 
   - List connected accounts
     gcloud auth list
+
+  - Change active account
+    gcloud config set account my.email@project44.com
+
 EOL
 )
 
@@ -670,6 +641,32 @@ uninstall_script() {
 	exit 0
 }
 
+# Download and install updates
+# $1 - remote version
+install_updates() {
+	# Check arg count and npe, assign values
+	check_args 1 $@
+	local remote_version=$1
+	# Function logic
+	update_url="https://github.com/$repo_owner/$repo_name/archive/refs/tags/v$remote_version.tar.gz"
+	tmp_folder="tmp_gcp2git_$remote_version"
+	if [ -d "tmp_folder" ]; then
+		rm -r "$tmp_folder"
+	fi
+	echo "Info: Downloading latest version..."
+	wget -q -P "$tmp_folder" "$update_url"
+	echo "Info: Download completed."
+	echo "Info: Extracting..."
+	cd "$tmp_folder"
+	tar -xzf "v$remote_version.tar.gz"
+	rm "v$remote_version.tar.gz"
+	echo "Info: Extraction completed."
+	cd "gcp2git-$remote_version"
+	./gcp2git.sh --install
+	cd ../..
+	rm -r "$tmp_folder"
+}
+
 # Generates autocomplete script in install folder
 generate_autocomplete_script() {
 	echo "Info: Generating 'gcp2git_autocomplete.sh' script..."
@@ -758,10 +755,19 @@ check_for_updates() {
 	local local_version=$(echo "$version" | sed 's/^v//')
 	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
 	local version_result=$(awk -v v1="$local_version" -v v2="$remote_version" 'BEGIN {if (v1==v2) {result=0; exit;}; split(v1, a, "."); split(v2, b, "."); for (i=1; i<=length(a); i++) {if (a[i]<b[i]) {result=1; exit;}} {result=0; exit;}} END {print result}')
-	case $version_result in
-		0) echo "Info: You already have the latest script version ($version).";;
-		1) echo "Info: New version available (v$remote_version). Please visit '$repo/releases' for more info.";;
-	esac
+
+	if [ "$version_result" -eq 0 ]; then
+		echo "Info: You already have the latest script version ($version)."
+	elif [ "$version_result" -eq 1 ]; then
+		echo "Info: New version available (v$remote_version)."
+		echo "Q: Do you want to download and install updates (Y/n)?"
+		read do_update
+		if [ "${do_update,,}" == "y" ] || [ -z $push_changes ]; then
+			install_updates "$remote_version"
+		else
+			echo "Update canceled. You can visit '$repo/releases' for more info."
+		fi
+	fi
 }
 
 # Check if all necessary changes are done during installation
@@ -1116,7 +1122,7 @@ commit_git() {
 	fi
 	echo "Q: Do you want to push changes to remote? (Y/n):"
 	read push_changes
-	if [ "${push_changes,,}" == "y" ] ||  [ -z $push_changes ]; then
+	if [ "${push_changes,,}" == "y" ] || [ -z $push_changes ]; then
 		git push origin "$(git branch --show-current)"
 	else
 		:
