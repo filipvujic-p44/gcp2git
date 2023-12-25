@@ -31,17 +31,23 @@ INFO:
   github: $repo
 
   This script is a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
-  
-  Script requires that you are logged into GCloud CLI (check with 'gcloud auth list').
-  Using '--install-y' option will set up GCloud CLI for you.
-  For more info on how to set up GCloud CLI use '--help-gcloud-cli' or read:
-  https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
 REQUIREMENTS:
-  - gcloud (use '--help-gcloud-cli' for more details)
+  - gcloud (for GCP access)
   - python3 (for comparing files)
   - git (for syncing with github repos)
   - bash-completion (for autocomplete)
+
+  GCloud CLI - required for accessing GCP files. You have to be logged into GCloud CLI (check with 'gcloud auth list').
+  For more info on how to set up GCloud CLI use '--help-gcloud-cli' or read:
+  https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
+
+  Python - required for json file comparison. It is used to format json files before comparing.
+  Otherwise, there could be a false positive due to different file formatting.
+
+  Git - required for access to GitHub repos and commiting/pushing changes.
+
+  Bash-completion - optionall, but installed by default. Provides autocomplete functionality.
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
@@ -905,7 +911,7 @@ check_service_set() {
 # Check requirements before calling any action
 check_action_requirements() {
 	if ! check_gcloud_installed; then
-		echo "Info: GCloud CLI is not installed. It is required for GCP access."
+		echo "Info: GCloud CLI is not installed. You may not have access to GCP."
 	fi
 
 	if ! check_python_installed; then
