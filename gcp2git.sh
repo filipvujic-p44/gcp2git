@@ -47,13 +47,13 @@ REQUIREMENTS:
 
   Git - required for access to GitHub repos and commiting/pushing changes.
 
-  Bash-completion - optionall, but installed by default. Provides autocomplete functionality.
+  Bash-completion - optional, but installed by default. Provides autocomplete functionality.
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
   Script requires gcloud, python3, git and bash-completion, so it will install those packages.
-  Use '--install-y' to preapprove dependencies and run GCloud CLI login in the end.
+  Use '--install-y' to preapprove dependencies and run GCloud CLI login after installation.
   Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
   You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
 
@@ -77,28 +77,28 @@ OPTIONS (details):
     --help-actions                Display available actions.
     --help-gcloud-cli             Display GCloud CLI help.
     --install                     Install script to use from anywhere in terminal.
-    --install-y	                  Preapproves dependencies and runs 'gcloud auth login' after installation.
-    --uninstall                   Remove changes made during install (except dependencies: gcloud, python3, git).
-    --chk-install                 Check if script and requirements are installed correctly.
+    --install-y	                  Install with preapproved dependencies and run 'gcloud auth login' after installation.
+    --uninstall                   Remove changes made during install (except dependencies).
+    --chk-install                 Check if script and dependencies are installed correctly.
     --chk-for-updates             Check for new script versions.
-    --auto-chk-for-updates-off    Turns off automatic check for updates (default value).
-    --auto-chk-for-updates-on     Check for updates on every script execution (checks on every run).
-    --generate-env-file           Generates '.env_gcp2git' in the current folder.
-    --update-gitignore-file       Updates '.gitignore' file.
+    --auto-chk-for-updates-off    Turn off automatic check for updates (default state).
+    --auto-chk-for-updates-on     Turn on automatic check for updates (checks on every run).
+    --generate-env-file           Generate '.env_gcp2git' in current folder.
+    --update-gitignore-file       Update '.gitignore' file.
 
   actions:
-    --compare-lcl-and-pg          Downloads playground files and compares content with local files.
-    --compare-lcl-and-int         Downloads qa-int files and compares content with local files.
-    --compare-pg-and-int          Downloads playground and qa-int files and compares content of each file.
+    --compare-lcl-and-pg          Download playground files and compare content with local files.
+    --compare-lcl-and-int         Download qa-int files and compare content with local files.
+    --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
     --download-pg                 Download remote playground files.
     --download-int                Download remote qa-int files.
-    --update-lcl-from-pg          Updates local files from GCP playground.
-    --update-lcl-from-int         Updates local files from GCP qa-int.
-    --update-pg-from-lcl          Updates GCP playground files from local.
-    --update-pg-from-int          Updates GCP playground files from GCP qa-int.
-    --update-gh-from-pg           Updates GitHub files from GCP playground.
-    --update-gh-from-int          Updates GitHub files from GCP qa-int.
-    --update-all-from-int         Updates local, GCP playground, and GitHub files from GCP qa-int.
+    --update-lcl-from-pg          Update local files from GCP playground.
+    --update-lcl-from-int         Update local files from GCP qa-int.
+    --update-pg-from-lcl          Update GCP playground files from local.
+    --update-pg-from-int          Update GCP playground files from GCP qa-int.
+    --update-gh-from-pg           Update GitHub files from GCP playground.
+    --update-gh-from-int          Update GitHub files from GCP qa-int.
+    --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
 
   interaction-modes:
     --ltl                         Set mode to 'LTL' (default value).
@@ -133,18 +133,18 @@ EOL
 # Modes text
 actions_text=$(cat <<EOL
 ACTIONS:
-  --compare-lcl-and-pg     Downloads playground files and compares content with local files.
-  --compare-lcl-and-int    Downloads qa-int files and compares content with local files.
-  --compare-pg-and-int     Downloads playground and qa-int files and compares content of each file.
+  --compare-lcl-and-pg     Download playground files and compare content with local files.
+  --compare-lcl-and-int    Download qa-int files and compare content with local files.
+  --compare-pg-and-int     Download playground and qa-int files and compare content of each file.
   --download-pg            Download remote playground files.
   --download-int           Download remote qa-int files.
-  --update-lcl-from-pg     Updates local files from GCP playground.
-  --update-lcl-from-int    Updates local files from GCP qa-int.
-  --update-pg-from-lcl     Updates GCP playground files from local.
-  --update-pg-from-int     Updates GCP playground files from GCP qa-int.
-  --update-gh-from-pg      Updates GitHub files from GCP playground.
-  --update-gh-from-int     Updates GitHub files from GCP qa-int.
-  --update-all-from-int    Updates local, GCP playground, and GitHub files from GCP qa-int.
+  --update-lcl-from-pg     Update local files from GCP playground.
+  --update-lcl-from-int    Update local files from GCP qa-int.
+  --update-pg-from-lcl     Update GCP playground files from local.
+  --update-pg-from-int     Update GCP playground files from GCP qa-int.
+  --update-gh-from-pg      Update GitHub files from GCP playground.
+  --update-gh-from-int     Update GitHub files from GCP qa-int.
+  --update-all-from-int    Update local, GCP playground, and GitHub files from GCP qa-int.
 EOL
 )
 
@@ -459,26 +459,9 @@ gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
 flg_fresh_gcp_pg_download=false
 flg_fresh_gcp_qa_int_download=false
 
-# Echo variables (needs update)
-# echo "source_folder=$source_folder"
-# echo "destination_folder=$destination_folder"
-# echo "flg_compare_pg_and_int=$flg_compare_pg_and_int"
-# echo "flg_download_pg=$flg_download_pg"
-# echo "flg_download_qa_int=$flg_download_qa_int"
-# echo "update_git=$update_git"
-# echo "update_pg=$update_pg"
-# echo "update_local=$update_local"
-# echo "update_all=$update_all"
-# echo "playground_base_url=$playground_base_url"
-# echo "qa_int_base_url=$qa_int_base_url"
-# echo "mode=$mode"
-# echo "interaction=$interaction"
-# echo "service=$service"
-# echo "carrier=$carrier"
-
 
 ################################################################################################
-###################################### Dependency check functions #############################
+###################################### Dependency check functions ##############################
 ################################################################################################
 
 
@@ -870,9 +853,8 @@ check_file_prefix() {
 	return 1
 }
 
-# Check if git installed.
+# Check if current directory is a git repo.
 check_is_git_repo() {
-	# Check if directory is a git repo
 	if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
    		return 0
    	else
@@ -880,7 +862,7 @@ check_is_git_repo() {
 	fi
 }
 
-# Check if git installed.
+# Check all git requirements.
 check_git_repo_requirements() {
 	if ! check_git_installed; then
 		echo "Error: Git is not installed!"
@@ -1036,7 +1018,7 @@ update_file_content() {
 	done
 }
 
-# Update local files from source folder.
+# Updates local files from source folder.
 # $1 - source folder with new files
 update_local_from_source() {
 	# Check arg count and npe, assign values
@@ -1075,7 +1057,7 @@ upload_to_pg() {
 	rm -rf "$tmp_dir"
 }
 
-# Update .gitignore file.
+# Updates .gitignore file.
 update_gitignore() {
 	# Git repo requirements check
 	check_git_repo_requirements	
@@ -1119,7 +1101,7 @@ update_gitignore() {
 	fi
 }
 
-# Commit git changes.
+# Commits git changes.
 commit_git() {
 	# Git requirement check
 	check_git_repo_requirements
@@ -1262,11 +1244,13 @@ fi
 # Install
 if [ "$do_install" == "true" ] || [ "$do_install_y" == "true" ]; then
 	install_script
+	exit 0
 fi
 
 # Uninstall
 if [ "$do_uninstall" == "true" ]; then
 	uninstall_script
+	exit 0
 fi
 
 # Install GCloud CLI
@@ -1278,6 +1262,7 @@ fi
 # Generate env file
 if [ "$flg_generate_env_file" == "true" ]; then
 	generate_env_file
+	exit 0
 fi
 
 # Action calls
