@@ -1,7 +1,7 @@
 #!/bin/bash
 version="v1.0.14"
 author="Filip Vujic"
-last_updated="23-Dec-2023"
+last_updated="25-Dec-2023"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -11,6 +11,7 @@ repo="https://github.com/$repo_owner/$repo_name"
 ###################################################################################
 
 
+# automatic updates install
 # verbose mode
 # log mode
 # dynamic env file name
@@ -29,9 +30,10 @@ INFO:
   last updated: $last_updated
   github: $repo
 
-  This script is used as a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
+  This script is a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
   
   Script requires that you are logged into GCloud CLI (check with 'gcloud auth list').
+  Using '--install-y' option will set up GCloud CLI for you.
   For more info on how to set up GCloud CLI use '--help-gcloud-cli' or read:
   https://drive.google.com/file/d/1k1YHjEFtCLE3DpbZ7Tl_99eYoe3tx4C8/view?usp=sharing.
 
@@ -39,14 +41,15 @@ REQUIREMENTS:
   - gcloud (use '--help-gcloud-cli' for more details)
   - python3 (for comparing files)
   - git (for syncing with github repos)
+  - bash-completion (for autocomplete)
 
 INSTALLATION:
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
-  Script requires gcloud, python3 and git installed, so it will install those packages.
-  Use '--install-y' to preapprove dependencies and run GCloud CLI login in the end..
+  Script requires gcloud, python3, git and bash-completion, so it will install those packages.
+  Use '--install-y' to preapprove dependencies and run GCloud CLI login in the end.
   Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
-  You can remove gcloud, python3 and git dependencies manually, if needed.
+  You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
 
 OPTIONS:
   gcp2git.sh [-v | --version] [-h | --help] [--help-actions] [--help-gcloud-cli] 
@@ -113,7 +116,7 @@ USAGE:
   gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
-  - Tested on WSL Ubuntu 22.04
+  - Tested on WSL Ubuntu 22.04 and WSL Debian 12.4
   - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
   - Carrier scac, service name and action are required.
   - Carrier can be specified without using '--scac' flag and is case insensitive.
@@ -142,7 +145,6 @@ EOL
 # GCloud CLI help text
 gcloud_cli_text=$(cat <<EOL
 GCLOUD CLI INSTALLATION:
-
   For automatic installation, use '--install' or '--install-y' option.
 
   Official documentation:
@@ -447,7 +449,7 @@ gcp_pg_upload_dir_url="$gcp_pg_base_url/$mode/$service/$interaction"
 gcp_pg_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
 gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
 
-# Set download freshness flags
+# Set download-freshness flags
 flg_fresh_gcp_pg_download=false
 flg_fresh_gcp_qa_int_download=false
 
@@ -470,7 +472,7 @@ flg_fresh_gcp_qa_int_download=false
 
 
 ################################################################################################
-###################################### Requirement check functions #############################
+###################################### Dependency check functions #############################
 ################################################################################################
 
 
@@ -489,18 +491,12 @@ check_git_installed() {
 	command -v git &> /dev/null
 }
 
-# Temp check
-# Check if install/uninstall or action is set
-# if [ "$flg_chk_for_updates" != "true" ] && [ "$do_install" != "true" ] &&  [ "$do_install_y" == "true" ] && [ "$do_uninstall" != "true" ] &&
-# [ "$do_chk_install" != "true" ] && [ "$generate_env_file" == "true" ] && ["$flg_update_gitignore" == "true" ] &&
-# [ "$flg_compare_lcl_and_pg" != "true" ] && [ "$flg_compare_lcl_and_int" != "true" ] && [ "$flg_compare_pg_and_int" != "true" ] &&
-# [ "$flg_download_pg" != "true" ] && [ "$flg_download_qa_int" != "true" ] && [ "$flg_update_lcl_from_pg" != "true" ] &&
-# [ "$flg_update_lcl_from_qa_int" != "true" ] && [ "$flg_update_pg_from_lcl" != "true" ] &&
-# [ "$flg_update_pg_from_qa_int" != "true" ] && [ "$flg_update_gh_from_pg" != "true" ] &&
-# [ "$flg_update_gh_from_qa_int" != "true" ] && [ "$flg_update_all_from_qa_int" != "true" ]; then
-	# echo "Error: No action specified! Please use --help or --help-actions flag to see available actions."
-	# exit 1
-# fi
+check_bash_completion_installed() {
+	if dpkg -l | grep -q "bash-completion"; then
+		return 0
+	fi
+	return 1
+}
 
 
 #################################################################################################
@@ -513,8 +509,8 @@ install_script() {
 	echo "Info: Installing gcp2git..."
 	script_directory="$(dirname "$(readlink -f "$0")")"
 	# Check if requirements installed
-	if ! check_gcloud_installed || ! check_python_installed || ! check_git_installed; then
-		install_requirements
+	if ! check_gcloud_installed || ! check_python_installed || ! check_git_installed || ! check_bash_completion_installed; then
+		install_dependencies
 	fi
 	# Check if script already installed
 	if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ] &&
@@ -622,7 +618,17 @@ install_git() {
 	echo "Info: Git installed."
 }
 
-install_requirements() {
+install_bash_completion() {
+	echo "Info: Installing bash-completion..."
+	if [ "$do_install_y" == "true" ]; then
+		sudo apt install -y bash-completion
+	else
+		sudo apt install bash-completion
+	fi
+	echo "Info: Bash-completion installed."
+}
+
+install_dependencies() {
 	sudo apt update
 	# Check if GCloud CLI is installed
 	if ! check_gcloud_installed; then
@@ -637,6 +643,11 @@ install_requirements() {
 	# Check if git is installed
 	if ! check_git_installed; then
 		install_git
+	fi
+
+	# Check if bash-completion installed
+	if ! check_bash_completion_installed; then
+		install_bash_completion
 	fi
 }
 
@@ -664,7 +675,8 @@ clean_up_installation() {
 uninstall_script() {
 	echo "Info: Uninstaling script..."
 	clean_up_installation
-	echo "Info: Script required gcloud, python3 and git installed. You can remove these packages manually if needed."
+	echo "Info: Script required gcloud, python3, git and bash-completion installed."
+	echo "Info: You can remove these packages manually if needed."
 	echo "Info: Uninstall completed."
 	exit 0
 }
@@ -746,56 +758,13 @@ EOL
 	echo "Info: Generated '.env_gcp2git' file."
 }
 
-check_installation() {
-	local cnt_missing=0
-	if check_gcloud_installed; then
-		echo "Info: GCloud CLI ------------- OK."
-	else
-		echo "Error: GCloud CLI ------------ NOT FOUND."
-		((cnt_missing++))
-	fi
 
-	if check_python_installed; then
-		echo "Info: Python ----------------- OK."
-	else
-		echo "Error: Python ---------------- NOT FOUND."
-		((cnt_missing++))
-	fi
-
-	if check_git_installed; then
-		echo "Info: Git -------------------- OK."
-	else
-		echo "Error: Git ------------------- NOT FOUND."
-		((cnt_missing++))
-	fi
-		
-	if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
-		echo "Info: Folder ~/.gcp2git ------ OK."
-	else
-		echo "Error: Folder ~/.gcp2git ----- NOT OK."
-		((cnt_missing++))
-	fi
-
-	if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
-		grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
-		echo "Info: File ~/.bashrc --------- OK."
-	else
-		echo "Error: File ~/.bashrc -------- NOT OK."
-		((cnt_missing++))
-	fi	
-
-	if [ "$cnt_missing" -gt "0" ]; then
-		echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
-	fi
-	exit 0
-}
+#####################################################################################################
+###################################### General check functions ######################################
+#####################################################################################################
 
 
-###########################################################################################
-###################################### Version check ######################################
-###########################################################################################
-
-
+# Check if there is a new release on gcp2git GitHub repo
 check_for_updates() {
 	local local_version=$(echo "$version" | sed 's/^v//')
 	local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
@@ -806,12 +775,62 @@ check_for_updates() {
 	esac
 }
 
+# Check if all necessary changes are done during installation
+check_installation() {
+	local cnt_missing=0
+	if check_gcloud_installed; then
+		echo "Info: gcloud ----------------- OK."
+	else
+		echo "Error: gcloud ---------------- NOT FOUND."
+		((cnt_missing++))
+	fi
 
-###############################################################################################
-###################################### Utility functions ######################################
-###############################################################################################
+	if check_python_installed; then
+		echo "Info: python3 ---------------- OK."
+	else
+		echo "Error: python3 --------------- NOT FOUND."
+		((cnt_missing++))
+	fi
 
+	if check_git_installed; then
+		echo "Info: git -------------------- OK."
+	else
+		echo "Error: git ------------------- NOT FOUND."
+		((cnt_missing++))
+	fi
 
+	if check_bash_completion_installed; then
+		echo "Info: bash-completion -------- OK."
+	else
+		echo "Error: bash-completion ------- NOT FOUND."
+		((cnt_missing++))
+	fi
+		
+	if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
+		echo "Info: ~/.gcp2git ------------- OK."
+	else
+		echo "Error: ~/.gcp2git ------------ NOT OK."
+		((cnt_missing++))
+	fi
+
+	if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
+		grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+		echo "Info: ~/.bashrc -------------- OK."
+	else
+		echo "Error: ~/.bashrc ------------- NOT OK."
+		((cnt_missing++))
+	fi	
+
+	if [ "$cnt_missing" -gt "0" ]; then
+		echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
+		return 1
+	fi
+	return 0
+}
+
+# Check if the required number of args is passed to a function
+# $1 - required number of args
+# $2 - all passed args
 check_args() {
         local required_number_of_args=$1
         shift;
@@ -829,7 +848,92 @@ check_args() {
         done
 }
 
-# Generic function. Downloads files from GCP.
+# Checks if a file starts with any of the prefixes.
+# $1 - local file name
+check_file_prefix() {
+	# Check arg count and npe, assign values
+	check_args 1 $@
+	local filename=$1
+	# Function logic
+	local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
+	for prefix in "${prefixes[@]}"; do
+		if [[ "$filename" == "$prefix"* ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+# Check if git installed.
+check_is_git_repo() {
+	# Check if directory is a git repo
+	if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
+   		return 0
+   	else
+		return 1
+	fi
+}
+
+# Check if git installed.
+check_git_repo_requirements() {
+	if ! check_git_installed; then
+		echo "Error: Git is not installed!"
+		exit 1
+	fi
+	if ! check_is_git_repo; then
+		echo "Error: Directory is not a git repo!"
+		exit 1
+	fi
+}
+
+# Check if carrier scac is provided
+check_carrier_set() {
+	if [ -z "$carrier" ]; then
+		return 1
+	fi
+	return 0
+}
+
+# Check if service name is provided
+check_service_set() {
+	if [ -z "$service" ]; then
+		return 1
+	fi
+	return 0
+}
+
+# Check requirements before calling any action
+check_action_requirements() {
+	if ! check_gcloud_installed; then
+		echo "Info: GCloud CLI is not installed. It is required for GCP access."
+	fi
+
+	if ! check_python_installed; then
+		echo "Info: Python is not installed. Comparing files may not work properly."
+	fi
+
+	if ! check_git_installed; then
+		echo "Info: Git is not installed. Syncing with GitHub may not work properly."
+	fi
+
+	if ! check_carrier_set; then
+		echo "Error: No carrier scac provided!"
+		exit 1
+	fi
+	
+	if ! check_service_set; then
+		echo "Error: No service name provided!"
+		exit 1
+	fi
+}
+
+
+###############################################################################################
+###################################### Utility functions ######################################
+###############################################################################################
+
+
+# Downloads files from GCP.
 # $1 - gcp url (environment)
 # $2 - local target folder
 download_from_gcp() {
@@ -841,7 +945,7 @@ download_from_gcp() {
 	gsutil -q -m cp -r "$gcp_url" "$local_folder"
 }
 
-# Generic function. Uploads files to GCP.
+# Uploads files to GCP.
 # $1 - local file name
 # $2 - gcp url (environment)
 upload_file_to_gcp() {
@@ -857,7 +961,7 @@ upload_file_to_gcp() {
 	fi
 }
 
-# Generic function. Checks file content differences between two folders.
+# Checks file content differences between two folders.
 # $1 - source folder to iterate over
 # $2 - target folder to search for files and check content
 compare_files() {
@@ -893,23 +997,7 @@ compare_files() {
 	done
 }
 
-# Generic function. Checks if a file starts with any of the prefixes.
-# $1 - local file name
-check_file_prefix() {
-	# Check arg count and npe, assign values
-	check_args 1 $@
-	local filename=$1
-	# Function logic
-	local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
-	for prefix in "${prefixes[@]}"; do
-		if [[ "$filename" == "$prefix"* ]]; then
-			return 0
-		fi
-	done
-	return 1
-}
-
-# Generic function. Updates content of files using another folder as source.
+# Updates content of files using another folder as source.
 # $1 - source folder with new content
 # $2 - destination folder containing files that will get updated
 update_file_content() {
@@ -942,7 +1030,7 @@ update_file_content() {
 	done
 }
 
-# Generic function. Update local files from source folder.
+# Update local files from source folder.
 # $1 - source folder with new files
 update_local_from_source() {
 	# Check arg count and npe, assign values
@@ -954,7 +1042,7 @@ update_local_from_source() {
 	update_file_content $source_folder $destination_folder
 }
 
-# Generic function. Uploads files to GCP playground.
+# Uploads files to GCP playground.
 # $1 - source folder containing files to be uploaded
 upload_to_pg() {
 	# Check arg count and npe, assign values
@@ -981,29 +1069,7 @@ upload_to_pg() {
 	rm -rf "$tmp_dir"
 }
 
-# Generic function. Check if git installed.
-check_is_git_repo() {
-	# Check if directory is a git repo
-	if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
-   		return 0
-   	else
-		return 1
-	fi
-}
-
-# Generic function. Check if git installed.
-check_git_repo_requirements() {
-	if ! check_git_installed; then
-		echo "Error: Git is not installed!"
-		exit 1
-	fi
-	if ! check_is_git_repo; then
-		echo "Error: Directory is not a git repo!"
-		exit 1
-	fi
-}
-
-# Generic function. Update .gitignore file.
+# Update .gitignore file.
 update_gitignore() {
 	# Git repo requirements check
 	check_git_repo_requirements	
@@ -1047,7 +1113,7 @@ update_gitignore() {
 	fi
 }
 
-# Generic function. Commit git changes.
+# Commit git changes.
 commit_git() {
 	# Git requirement check
 	check_git_repo_requirements
@@ -1071,7 +1137,7 @@ commit_git() {
 
 
 ###################################################################################################
-###################################### Implemented functions ######################################
+###################################### Implemented action functions ###############################
 ###################################################################################################
 
 
@@ -1174,42 +1240,6 @@ update_github() {
 }
 
 
-###############################################################################################################
-############################################ Action requirements check  #######################################
-###############################################################################################################
-
-
-check_action_requirements() {
-	if ! check_gcloud_installed; then
-		echo "Info: GCloud CLI is not installed. It is required for GCP access."
-	fi
-
-	if ! check_python_installed; then
-		echo "Info: Python is not installed. Comparing files may not work properly."
-	fi
-
-	if ! check_git_installed; then
-		echo "Info: Git is not installed. Syncing with GitHub may not work properly."
-	fi
-
-	# Check if carrier scac is provided
-	check_carrier() {
-		if [ -z "$carrier" ]; then
-			echo "Error: No carrier scac provided!"
-			exit 1
-		fi
-	}
-
-	# Check if service name is provided
-	check_service() {
-		if [ -z "$service" ]; then
-			echo "Error: No service name provided!"
-			exit 1
-		fi
-	}
-}
-
-
 ###########################################################################################################################
 ############################################ Flags checks and function calls ##############################################
 ###########################################################################################################################
@@ -1220,6 +1250,7 @@ check_action_requirements() {
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
 	check_for_updates
+	exit 0
 fi
 
 # Install
@@ -1235,6 +1266,7 @@ fi
 # Install GCloud CLI
 if [ "$do_chk_install" == "true" ]; then
 	check_installation
+	exit 0
 fi
 
 # Generate env file
@@ -1271,30 +1303,37 @@ if [ "$flg_download_qa_int" == "true" ]; then
 	download_from_qa_int
 fi
 
+# Update local from playground
 if [ "$flg_update_lcl_from_pg" == "true" ]; then
 	update_local_from_pg
 fi
 
+# Update local from qa-int
 if [ "$flg_update_lcl_from_qa_int" == "true" ]; then
 	update_local_from_qa_int
 fi
 
+# Update playground from local
 if [ "$flg_update_pg_from_lcl" == "true" ]; then
 	update_pg_from_local
 fi
 
+# Update playground from qa-int
 if [ "$flg_update_pg_from_qa_int" == "true" ]; then
 	update_pg_from_qa_int
 fi
 
+# Update GitHub from playground
 if [ "$flg_update_gh_from_pg" == "true" ]; then
 	update_github_from_pg
 fi
 
+# Update GitHub from qa-int
 if [ "$flg_update_gh_from_qa_int" == "true" ]; then
 	update_github_from_qa_int
 fi
 
+# Update gitignore file
 if [ "$flg_update_gitignore" == "true" ]; then
 	update_gitignore
 fi
@@ -1305,10 +1344,12 @@ fi
 ###################################################################################################
 
 
+# Remove local playground download folder
 if [ "$flg_download_pg" != "true" ] && [ -d "$local_pg_folder" ]; then
 	rm -r "$local_pg_folder"
 fi
 
+# Remove local qa-int download folder
 if [ "$flg_download_qa_int" != "true" ] && [ -d "$local_qa_int_folder" ]; then
 	rm -r "$local_qa_int_folder"
 fi
