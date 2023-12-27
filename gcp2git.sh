@@ -760,7 +760,7 @@ check_for_updates() {
 		echo "Info: You already have the latest script version ($version)."
 	elif [ "$version_result" -eq 1 ]; then
 		echo "Info: New version available (v$remote_version)."
-		echo "Q: Do you want to download and install updates (Y/n)?"
+		echo "Q: Do you want to download and install updates? (Y/n):"
 		read do_update
 		if [ "${do_update,,}" == "y" ] || [ -z $push_changes ]; then
 			install_updates "$remote_version"
