@@ -64,7 +64,7 @@ Options (details):
         --help-usage                  Display usage info.
         --help-gcloud-cli             Display GCloud CLI help.
         --install                     Install script to use from anywhere in terminal.
-        --install-y	                  Install with preapproved dependencies and run 'gcloud auth login' after installation.
+        --install-y                   Install with preapproved dependencies and run 'gcloud auth login' after installation.
         --uninstall                   Remove changes made during install (except dependencies).
         --chk-install                 Check if script and dependencies are installed correctly.
         --chk-for-updates             Check for new script versions.
