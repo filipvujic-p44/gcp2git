@@ -15,6 +15,7 @@ repo="https://github.com/$repo_owner/$repo_name"
 # Help text
 help_text=$(cat <<EOL
 INFO:
+-----
   gcp2git version: $version
   author: $author
   last updated: $last_updated
@@ -23,12 +24,14 @@ INFO:
   This script is a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
 
 REQUIREMENTS:
+-------------
   - gcloud (for GCP access)
   - python3 (for comparing files)
   - git (for syncing with github repos)
   - bash-completion (for autocomplete)
 
 INSTALLATION:
+-------------
   Using '--install' option will create a folder ~/gcp2git and put the script inside.
   That path will be exported to ~/.bashrc so it can be used from anywhere.
   Script requires gcloud, python3, git and bash-completion, so it will install those packages.
@@ -37,6 +40,7 @@ INSTALLATION:
   You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
 
 OPTIONS:
+--------
   gcp2git.sh [-v | --version] [-h | --help] [--help-actions] [--help-gcloud-cli] 
              [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
              [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
@@ -50,6 +54,7 @@ OPTIONS:
              [--scac=<carrier_scac>] <carrier_scac>
 
 OPTIONS (details):
+------------------
   general:
     -v | --version                Display script version and author.
     -h | --help                   Display help and usage info.
@@ -95,12 +100,14 @@ OPTIONS (details):
     --scac=<carrier_scac>         Set carrier scac (case insensitive; can be set without using flags).
 
 USAGE:
+------
   gcp2git.sh abfs --imaging --compare-lcl-and-pg
   gcp2git.sh --tl --rating --download-pg gtjn
   gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
   gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
 
 NOTES:
+------
   - Tested on WSL Ubuntu 22.04 and WSL Debian 12.4
   - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
   - Carrier scac, service name and action are required.
@@ -112,6 +119,7 @@ EOL
 # Modes text
 actions_text=$(cat <<EOL
 ACTIONS:
+--------
   --compare-lcl-and-pg     Download playground files and compare content with local files.
   --compare-lcl-and-int    Download qa-int files and compare content with local files.
   --compare-pg-and-int     Download playground and qa-int files and compare content of each file.
@@ -129,8 +137,8 @@ EOL
 
 # GCloud CLI help text
 gcloud_cli_text=$(cat <<EOL
-GCLOUD CLI USAGE:
-  GCloud CLI is required to access remote GCP files.
+GCLOUD CLI:
+-----------
 
   Official documentation:
   -----------------------
@@ -138,8 +146,8 @@ GCLOUD CLI USAGE:
   - gsutil installation: https://cloud.google.com/sdk/docs/install
   - gcloud: https://cloud.google.com/storage/docs/discover-object-storage-gcloud
 
-  For Project44:
-  --------------
+  Usage:
+  ------
   - Login to GCloud CLI
     gcloud auth login my.email@project44.com
 
