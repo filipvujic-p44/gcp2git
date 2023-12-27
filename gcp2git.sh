@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.14"
+version="v1.0.15"
 author="Filip Vujic"
-last_updated="25-Dec-2023"
+last_updated="27-Dec-2023"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -1342,12 +1342,12 @@ fi
 
 
 # Remove local playground download folder
-if [ "$flg_download_pg" != "true" ] && [ -d "$local_pg_folder" ]; then
+if [ -d "$local_pg_folder" ] && { [ "$flg_download_pg" != "true" ] || [ -z "$(ls -A "$local_pg_folder")" ]; }; then
 	rm -r "$local_pg_folder"
 fi
 
 # Remove local qa-int download folder
-if [ "$flg_download_qa_int" != "true" ] && [ -d "$local_qa_int_folder" ]; then
+if [ -d "$local_qa_int_folder" ] && { [ "$flg_download_qa_int" != "true" ] || [ -z "$(ls -A "$local_qa_int_folder")" ]; }; then
 	rm -r "$local_qa_int_folder"
 fi
 
