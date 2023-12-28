@@ -1324,6 +1324,12 @@ if [ "$flg_generate_env_file" == "true" ]; then
 	exit 0
 fi
 
+# Update gitignore file
+if [ "$flg_update_gitignore" == "true" ]; then
+	update_gitignore
+	exit 0
+fi
+
 # Action calls
 
 check_action_requirements
@@ -1381,11 +1387,6 @@ fi
 # Update GitHub from qa-int
 if [ "$flg_update_gh_from_qa_int" == "true" ]; then
 	update_github_from_qa_int
-fi
-
-# Update gitignore file
-if [ "$flg_update_gitignore" == "true" ]; then
-	update_gitignore
 fi
 
 
