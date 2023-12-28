@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.15"
+version="v1.0.16"
 author="Filip Vujic"
-last_updated="27-Dec-2023"
+last_updated="28-Dec-2023"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -14,140 +14,193 @@ repo="https://github.com/$repo_owner/$repo_name"
 
 # Help text
 help_text=$(cat <<EOL
-INFO:
-  gcp2git version: $version
-  author: $author
-  last updated: $last_updated
-  github: $repo
+GCP2GIT HELP:
+-------------
 
-  This script is a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
+Info:
+-----
+    gcp2git version: $version
+    author: $author
+    last updated: $last_updated
+    github: $repo
 
-REQUIREMENTS:
-  - gcloud (for GCP access)
-  - python3 (for comparing files)
-  - git (for syncing with github repos)
-  - bash-completion (for autocomplete)
+    This script is a tool for easier downloading, syncing and comparing local, remote GitHub and GCP files.
 
-INSTALLATION:
-  Using '--install' option will create a folder ~/gcp2git and put the script inside.
-  That path will be exported to ~/.bashrc so it can be used from anywhere.
-  Script requires gcloud, python3, git and bash-completion, so it will install those packages.
-  Use '--install-y' to preapprove dependencies and run GCloud CLI login after installation.
-  Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
-  You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
+Requirements:
+-------------
+    - gcloud (for GCP access)
+    - python3 (for comparing files)
+    - git (for syncing with github repos)
+    - bash-completion (for autocomplete)
 
-OPTIONS:
-  gcp2git.sh [-v | --version] [-h | --help] [--help-actions] [--help-gcloud-cli] 
-             [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
-             [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
-             [--generate-env-file] [--update-gitignore-file] 
-             [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
-             [--download-pg] [--download-int] 
-             [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
-             [--update-pg-from-int] [--update-gh-from-pg] [--update-gh-from-int] 
-             [--update-all-from-int] [--ltl] [--tl] [--carrier-push] 
-             [--carrier-pull] [--rating] [--dispatch] [--tracking] [--imaging] 
-             [--scac=<carrier_scac>] <carrier_scac>
+Installation:
+-------------
+    Using '--install' option will create a folder ~/gcp2git and put the script inside.
+    That path will be exported to ~/.bashrc so it can be used from anywhere.
+    Script requires gcloud, python3, git and bash-completion, so it will install those packages.
+    Use '--install-y' to preapprove dependencies and run GCloud CLI login after installation.
+    Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
+    You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
 
-OPTIONS (details):
-  general:
-    -v | --version                Display script version and author.
-    -h | --help                   Display help and usage info.
-    --help-actions                Display available actions.
-    --help-gcloud-cli             Display GCloud CLI help.
-    --install                     Install script to use from anywhere in terminal.
-    --install-y	                  Install with preapproved dependencies and run 'gcloud auth login' after installation.
-    --uninstall                   Remove changes made during install (except dependencies).
-    --chk-install                 Check if script and dependencies are installed correctly.
-    --chk-for-updates             Check for new script versions.
-    --auto-chk-for-updates-off    Turn off automatic check for updates (default state).
-    --auto-chk-for-updates-on     Turn on automatic check for updates (checks on every run).
-    --generate-env-file           Generate '.env_gcp2git' in current folder.
-    --update-gitignore-file       Update '.gitignore' file.
+Options:
+--------
+    gcp2git.sh [-v | --version] [-h | --help] [--help-usage] [--help-gcloud-cli] 
+               [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
+               [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
+               [--generate-env-file] [--update-gitignore-file] 
+               [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
+               [--download-pg] [--download-int] 
+               [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
+               [--update-pg-from-int] [--update-gh-from-pg] [--update-gh-from-int] 
+               [--update-all-from-int] [--ltl] [--tl] [--carrier-push] 
+               [--carrier-pull] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--scac <carrier_scac>] <carrier_scac>
 
-  actions:
-    --compare-lcl-and-pg          Download playground files and compare content with local files.
-    --compare-lcl-and-int         Download qa-int files and compare content with local files.
-    --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
-    --download-pg                 Download remote playground files.
-    --download-int                Download remote qa-int files.
-    --update-lcl-from-pg          Update local files from GCP playground.
-    --update-lcl-from-int         Update local files from GCP qa-int.
-    --update-pg-from-lcl          Update GCP playground files from local.
-    --update-pg-from-int          Update GCP playground files from GCP qa-int.
-    --update-gh-from-pg           Update GitHub files from GCP playground.
-    --update-gh-from-int          Update GitHub files from GCP qa-int.
-    --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+Options (details):
+------------------
+    general:
+        -v | --version                Display script version and author.
+        -h | --help                   Display help and usage info.
+        --help-usage                  Display usage info.
+        --help-gcloud-cli             Display GCloud CLI help.
+        --install                     Install script to use from anywhere in terminal.
+        --install-y                   Install with preapproved dependencies and run 'gcloud auth login' after installation.
+        --uninstall                   Remove changes made during install (except dependencies).
+        --chk-install                 Check if script and dependencies are installed correctly.
+        --chk-for-updates             Check for new script versions.
+        --auto-chk-for-updates-off    Turn off automatic check for updates (default state).
+        --auto-chk-for-updates-on     Turn on automatic check for updates (checks on every run).
+        --generate-env-file           Generate '.env_gcp2git' in current folder.
+        --update-gitignore-file       Update '.gitignore' file.
 
-  interaction-modes:
-    --ltl                         Set mode to 'LTL' (default value).
-    --tl                          Set mode to 'TL'.
-    --carrier-push                Set interaction to 'CARRIER_PUSH'.
-    --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
+    actions:
+        --compare-lcl-and-pg          Download playground files and compare content with local files.
+        --compare-lcl-and-int         Download qa-int files and compare content with local files.
+        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
+        --download-pg                 Download remote playground files.
+        --download-int                Download remote qa-int files.
+        --update-lcl-from-pg          Update local files from GCP playground.
+        --update-lcl-from-int         Update local files from GCP qa-int.
+        --update-pg-from-lcl          Update GCP playground files from local.
+        --update-pg-from-int          Update GCP playground files from GCP qa-int.
+        --update-gh-from-pg           Update GitHub files from GCP playground.
+        --update-gh-from-int          Update GitHub files from GCP qa-int.
+        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
 
-  services:
-    --rating                      Set service to 'RATING'.
-    --dispatch                    Set service to 'DISPATCH'.
-    --tracking                    Set service to 'SHIPMENT_STATUS'.
-    --imaging                     Set service to 'IMAGING'.
+    transportation-modes:
+        --ltl                         Set mode to 'LTL' (default value).
+        --tl                          Set mode to 'TL'.
+	    
+    interaction-types:
+        --carrier-push                Set interaction to 'CARRIER_PUSH'.
+        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
 
-  carrier:
-    --scac=<carrier_scac>         Set carrier scac (case insensitive; can be set without using flags).
+    service-types:
+        --rating                      Set service to 'RATING'.
+        --dispatch                    Set service to 'DISPATCH'.
+        --tracking                    Set service to 'SHIPMENT_STATUS'.
+        --imaging                     Set service to 'IMAGING'.
 
-USAGE:
-  gcp2git.sh abfs --imaging --compare-lcl-and-pg
-  gcp2git.sh --tl --rating --download-pg gtjn
-  gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-  gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+    carrier:
+        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
 
-NOTES:
-  - Tested on WSL Ubuntu 22.04 and WSL Debian 12.4
-  - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
-  - Carrier scac, service name and action are required.
-  - Carrier can be specified without using '--scac' flag and is case insensitive.
-  - Flags are prioritized over .env file values.
+Usage:
+------
+    gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
+    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh --generate-env-file
+    gcp2git.sh --tl --rating --download-pg gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
+    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+
+Notes:
+------
+    - Tested on WSL Ubuntu 22.04 and WSL Debian 12.4
+    - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
+    - Carrier scac, service name and action are required.
+    - Carrier can be specified without using '--scac' flag and is case insensitive.
+    - Flags are prioritized over .env file values.
 EOL
 )
 
 # Modes text
-actions_text=$(cat <<EOL
-ACTIONS:
-  --compare-lcl-and-pg     Download playground files and compare content with local files.
-  --compare-lcl-and-int    Download qa-int files and compare content with local files.
-  --compare-pg-and-int     Download playground and qa-int files and compare content of each file.
-  --download-pg            Download remote playground files.
-  --download-int           Download remote qa-int files.
-  --update-lcl-from-pg     Update local files from GCP playground.
-  --update-lcl-from-int    Update local files from GCP qa-int.
-  --update-pg-from-lcl     Update GCP playground files from local.
-  --update-pg-from-int     Update GCP playground files from GCP qa-int.
-  --update-gh-from-pg      Update GitHub files from GCP playground.
-  --update-gh-from-int     Update GitHub files from GCP qa-int.
-  --update-all-from-int    Update local, GCP playground, and GitHub files from GCP qa-int.
+usage_text=$(cat <<EOL
+USAGE HELP:
+-----------
+
+Options:
+--------
+    actions:
+        --compare-lcl-and-pg          Download playground files and compare content with local files.
+        --compare-lcl-and-int         Download qa-int files and compare content with local files.
+        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
+        --download-pg                 Download remote playground files.
+        --download-int                Download remote qa-int files.
+        --update-lcl-from-pg          Update local files from GCP playground.
+        --update-lcl-from-int         Update local files from GCP qa-int.
+        --update-pg-from-lcl          Update GCP playground files from local.
+        --update-pg-from-int          Update GCP playground files from GCP qa-int.
+        --update-gh-from-pg           Update GitHub files from GCP playground.
+        --update-gh-from-int          Update GitHub files from GCP qa-int.
+        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+
+    transportation-modes:
+        --ltl                         Set mode to 'LTL' (default value).
+        --tl                          Set mode to 'TL'.
+	    
+    interaction-types:
+        --carrier-push                Set interaction to 'CARRIER_PUSH'.
+        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
+
+    service-types:
+        --rating                      Set service to 'RATING'.
+        --dispatch                    Set service to 'DISPATCH'.
+        --tracking                    Set service to 'SHIPMENT_STATUS'.
+        --imaging                     Set service to 'IMAGING'.
+
+    carrier:
+        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
+
+Usage:
+------
+    gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
+    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh --generate-env-file
+    gcp2git.sh --tl --rating --download-pg gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
+    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+
 EOL
 )
 
 # GCloud CLI help text
 gcloud_cli_text=$(cat <<EOL
-GCLOUD CLI USAGE:
-  GCloud CLI is required to access remote GCP files.
+GCLOUD CLI HELP:
+----------------
 
-  Official documentation:
-  -----------------------
-  - gsutil tool: https://cloud.google.com/storage/docs/gsutil
-  - gsutil installation: https://cloud.google.com/sdk/docs/install
-  - gcloud: https://cloud.google.com/storage/docs/discover-object-storage-gcloud
+Official documentation:
+-----------------------
+    - gsutil: https://cloud.google.com/storage/docs/gsutil
+    - gsutil installation: https://cloud.google.com/sdk/docs/install
+    - gcloud: https://cloud.google.com/storage/docs/discover-object-storage-gcloud
+    - gcloud installaion: https://cloud.google.com/sdk/docs/install
 
-  For Project44:
-  --------------
-  - Login to GCloud CLI
-    gcloud auth login my.email@project44.com
+Usage:
+------
+    - Login to GCloud CLI
+        gcloud auth login my.email@project44.com
 
-  - List connected accounts
-    gcloud auth list
+    - List connected accounts
+        gcloud auth list
 
-  - Change active account
-    gcloud config set account my.email@project44.com
+    - Change active account
+        gcloud config set account my.email@project44.com
+
+    - Revoke account
+        gcloud auth revoke my.email@project44.com
+
+    - GCloud CLI help
+        gcloud help
 
 EOL
 )
@@ -302,8 +355,8 @@ while [ "$1" != "" ]; do
 			echo "$help_text"
 			exit 0
 			;;
-		--help-actions)
-			echo "$actions_text"
+		--help-usage)
+			echo "$usage_text"
 			exit 0
 			;;
 		--help-gcloud-cli)
@@ -678,7 +731,7 @@ autocomplete() {
 	_init_completion || return
 
 	local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-	options+="--help -h --help-gcloud-cli --help-actions --install --install-y --uninstall --chk-install --generate-env-file "
+	options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
 	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
