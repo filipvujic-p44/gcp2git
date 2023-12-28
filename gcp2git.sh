@@ -106,8 +106,9 @@ Options (details):
 
 Usage:
 ------
-    gcp2git.sh [transportation-mode] [interaction-type] scac service-type action
+    gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
     gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh --generate-env-file
     gcp2git.sh --tl --rating --download-pg gtjn
     gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
     gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
@@ -162,8 +163,9 @@ Options:
 
 Usage:
 ------
-    gcp2git.sh [transportation-mode] [interaction-type] scac service-type action
+    gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
     gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh --generate-env-file
     gcp2git.sh --tl --rating --download-pg gtjn
     gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
     gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
