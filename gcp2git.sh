@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.16"
+version="v1.0.17"
 author="Filip Vujic"
-last_updated="28-Dec-2023"
+last_updated="16-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -1017,6 +1017,7 @@ compare_files() {
 	local source_folder=$1
 	local target_folder=$2
 	# Function logic
+	local diffCount=0;
 	for source_file in "$source_folder"/*; do
 		# Check if it's a file
 		if [ -f "$source_file" ]; then
@@ -1024,24 +1025,41 @@ compare_files() {
 			filename=$(basename "$source_file")
 			if check_file_prefix "$filename"; then
 				target_folder_file_path="$target_folder/$filename"
-				if cmp -s "$source_file" "$target_folder_file_path"; then
+				# Check if target file exists
+				if [ ! -f "$target_folder_file_path" ]; then
+					echo "Error: File $target_folder_file_path doesn't exist!"
+					((diffCount++))
+				# If it exists, compare files
+				elif cmp -s "$source_file" "$target_folder_file_path"; then
 					:
+				# If files are .json type, try to fix the formatting
 				elif [[ "$source_file" == *.json ]] &&
 					diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &> /dev/null; then
 					echo "Info: File '$source_file' has matching content, but different formatting."
+					((diffCount++))
 				else
-					echo "Info: File $filename doesn't have matching content"
-					# If target file exists, print differences
-					if [ -f "$target_folder_file_path" ]; then
+					# Handle file diff
+					echo "Info: File $filename doesn't have matching content."
+					echo "Q: Show diff (y/N)?"
+					read show_diff
+					if [ "${show_diff,,}" == "y" ]; then
 						echo "Info: File content: $source_file"
 						grep -nFxvf "$source_file" "$target_folder_file_path"
 						echo "Info: File content: $target_folder_file_path"
 						grep -nFxvf "$target_folder_file_path" "$source_file"
 					fi
+					((diffCount++))
 				fi
 			fi
 		fi
 	done
+	if [ "$diffCount" -eq 1 ]; then
+		echo "Info: Found differences in 1 file."
+	elif [ "$diffCount" -gt 0 ]; then
+	    echo "Info: Found differences in $diffCount files."
+	else
+	    echo "Info: All files have matching content."
+	fi
 }
 
 # Updates content of files using another folder as source.
