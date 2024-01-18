@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.17"
+version="v1.0.18"
 author="Filip Vujic"
-last_updated="16-Jan-2024"
+last_updated="18-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -1030,7 +1030,7 @@ compare_files() {
 					echo "Error: File $target_folder_file_path doesn't exist!"
 					((diffCount++))
 				# If it exists, compare files
-				elif cmp -s "$source_file" "$target_folder_file_path"; then
+				elif cmp -s "$source_file" "$target_folder_file_path" || ! diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
 					:
 				# If files are .json type, try to fix the formatting
 				elif [[ "$source_file" == *.json ]] &&
