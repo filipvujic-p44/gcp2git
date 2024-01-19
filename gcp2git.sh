@@ -1031,7 +1031,7 @@ compare_files() {
 					echo "Error: File $target_folder_file_path doesn't exist!"
 					((diffCount++))
 				# If it exists, compare files
-				elif cmp -s "$source_file" "$target_folder_file_path" || ! diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
+				elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
 					:
 				# If files are .json type, try to fix the formatting
 				elif [[ "$source_file" == *.json ]] &&
