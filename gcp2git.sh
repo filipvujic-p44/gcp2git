@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.18"
+version="v1.0.19"
 author="Filip Vujic"
-last_updated="18-Jan-2024"
+last_updated="19-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -554,6 +554,7 @@ install_script() {
 	echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
 	echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
 	echo "Info: Paths added to '~/.bashrc'."
+	source ~/.bashrc
 	# Print success message
 	echo "Info: Success. Script installed in '~/gcp2git' folder."
 	# If '--install-y' was used, set up gcloud auth
@@ -571,7 +572,7 @@ install_script() {
 		echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
 		echo "Info: Use 'gcloud auth list' to check if you are logged in."
 	fi
-	echo "Info: Log in again to apply changes (if on wsl, do 'wsl --shutdown' and reopen in 10s)." 
+	#echo "Info: Log in again to apply changes (if on wsl, do 'wsl --shutdown' and reopen in 10s)." 
 	echo "Info: You can remove the current script file."
 	echo "Info: Use '-h' or '--help' to get started."
 	exit 0
