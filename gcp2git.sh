@@ -752,8 +752,14 @@ autocomplete() {
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
 	options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
-	COMPREPLY=(\$(compgen -W "\$options" -- "\$cur"))
-    	return 0
+	# Check if --compare is present in the command line arguments
+    if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
+        COMPREPLY=(\$(compgen -o plusdirs -o nospace -W "\$(_filedir)" -- "\${cur}"))
+    else
+        COMPREPLY=(\$(compgen -W "\$options" -- "\${cur}"))
+    fi
+
+    return 0
 }
 
 complete -F autocomplete gcp2git.sh
