@@ -412,8 +412,8 @@ while [ "$1" != "" ]; do
 			;;
 		--compare)
 		    flg_compare=true
-		    cmp_folder_1="${3}"
-		    cmp_folder_2="${4}"
+		    cmp_folder_1="${2}"
+			cmp_folder_2="${3}"
 		    shift 3  # Shift by three positions to consume the flag and its two arguments
 		    ;;
 		--compare-lcl-and-pg)
