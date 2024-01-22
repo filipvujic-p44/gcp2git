@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.20"
+version="v1.0.21"
 author="Filip Vujic"
-last_updated="19-Jan-2024"
+last_updated="22-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -47,7 +47,7 @@ Options:
     gcp2git.sh [-v | --version] [-h | --help] [--help-usage] [--help-gcloud-cli] 
                [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
-               [--generate-env-file] [--update-gitignore-file] 
+               [--generate-env-file] [--update-gitignore-file] [--compare] 
                [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
                [--download-pg] [--download-int] 
                [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
@@ -74,6 +74,7 @@ Options (details):
         --update-gitignore-file       Update '.gitignore' file.
 
     actions:
+        --compare                     Compare files from two local folders.
         --compare-lcl-and-pg          Download playground files and compare content with local files.
         --compare-lcl-and-int         Download qa-int files and compare content with local files.
         --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
@@ -131,6 +132,7 @@ USAGE HELP:
 Options:
 --------
     actions:
+        --compare                     Compare files from two local folders.
         --compare-lcl-and-pg          Download playground files and compare content with local files.
         --compare-lcl-and-int         Download qa-int files and compare content with local files.
         --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
@@ -219,6 +221,7 @@ do_chk_install_=false
 # ref_chk_for_updates (do not change comment)
 flg_chk_for_updates=false
 flg_generate_env_file=false
+flg_compare=false
 flg_compare_lcl_and_pg=false
 flg_compare_lcl_and_int=false
 flg_compare_pg_and_int=false
@@ -246,6 +249,11 @@ if [ -e ".env_gcp2git" ]; then
 	source .env_gcp2git
 
 	# Set actions from .env
+
+	# Load compare value
+	if [ ! -z "$COMPARE" ]; then
+		flg_compare="$COMPARE"
+	fi
 
 	# Load compare local and pg value
 	if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
@@ -402,6 +410,12 @@ while [ "$1" != "" ]; do
 		--update-gitignore-file)
 			flg_update_gitignore=true
 			;;
+		--compare)
+		    flg_compare=true
+		    cmp_folder_1="${3}"
+		    cmp_folder_2="${4}"
+		    shift 3  # Shift by three positions to consume the flag and its two arguments
+		    ;;
 		--compare-lcl-and-pg)
 			flg_compare_lcl_and_pg=true
 			;;
@@ -733,7 +747,7 @@ autocomplete() {
 
 	local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
 	options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
-	options+="--update-gitignore-file --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
+	options+="--update-gitignore-file --compare --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
 	options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
 	options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
 	options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
@@ -766,6 +780,7 @@ generate_env_file() {
 # Fields can be overridden by flags
 
 # ACTIONS
+COMPARE=false
 COMPARE_LCL_AND_PG=false
 COMPARE_LCL_AND_INT=false
 COMPARE_PG_AND_INT=false
@@ -1207,6 +1222,14 @@ commit_git() {
 ###################################################################################################
 
 
+# Compare files from two local folders
+compare_local() {
+	if [ -z "$cmp_folder_1" ]; then cmp_folder_1="."; fi
+	if [ -z "$cmp_folder_2" ]; then cmp_folder_2="."; fi
+	echo "Info: Comparing folders '$cmp_folder_1' and '$cmp_folder_2'."
+	compare_files "$cmp_folder_1" "$cmp_folder_2"
+}
+
 # Compare local and playground files
 compare_lcl_and_pg() {
 	download_from_pg
@@ -1350,6 +1373,11 @@ if [ "$flg_update_gitignore" == "true" ]; then
 fi
 
 # Action calls
+
+if [ "$flg_compare" == "true" ]; then
+	compare_local
+	exit 0
+fi
 
 check_action_requirements
 
