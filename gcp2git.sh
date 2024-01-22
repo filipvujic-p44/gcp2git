@@ -1261,9 +1261,12 @@ download_from_pg() {
 	if [ -d "$local_pg_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
 		rm -r "$local_pg_folder"
 		mkdir "$local_pg_folder"
-		download_from_gcp "$gcp_pg_full_url/*" "$local_pg_folder"
 	else
 		mkdir "$local_pg_folder"
+	fi
+	if [ "$carrier" == "*" ]; then
+		download_from_gcp "$gcp_pg_full_url" "$local_pg_folder"
+	else
 		download_from_gcp "$gcp_pg_full_url/*" "$local_pg_folder"
 	fi
 	flg_fresh_gcp_pg_download=true
@@ -1275,9 +1278,12 @@ download_from_qa_int() {
 	if [ -d "$local_qa_int_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
 		rm -r "$local_qa_int_folder"
 		mkdir "$local_qa_int_folder"
-		download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
 	else
 		mkdir "$local_qa_int_folder"
+	fi
+	if [ "$carrier" == "*" ]; then
+		download_from_gcp "$gcp_qa_int_full_url" "$local_qa_int_folder"
+	else
 		download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
 	fi
 	flg_fresh_gcp_qa_int_download=true
