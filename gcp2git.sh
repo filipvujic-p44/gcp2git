@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.22"
+version="v1.0.23"
 author="Filip Vujic"
 last_updated="23-Jan-2024"
 repo_owner="filipvujic-p44"
@@ -999,11 +999,10 @@ check_service_set() {
 	return 0
 }
 
-# Check requirements before calling any action
-check_action_requirements() {
-
+# Check if all dependencies are installed
+check_dependencies() {
 	if ! check_wget_installed; then
-		echo "Info: Wget is not installed. Installing updates may not work properly."
+			echo "Info: Wget is not installed. Installing updates may not work properly."
 	fi
 
 	if ! check_gcloud_installed; then
@@ -1018,6 +1017,13 @@ check_action_requirements() {
 		echo "Info: Git is not installed. Syncing with GitHub may not work properly."
 	fi
 
+	if ! check_bash_completion_installed; then
+		echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
+	fi
+}
+
+# Check requirements before calling any action
+check_action_requirements() {
 	if ! check_carrier_set; then
 		echo "Error: No carrier scac provided!"
 		exit 1
@@ -1382,6 +1388,9 @@ update_github() {
 
 # General
 
+# Check if all dependencies are installed
+check_dependencies
+
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
 	check_for_updates
@@ -1425,11 +1434,18 @@ if [ "$flg_compare" == "true" ]; then
 	exit 0
 fi
 
-check_action_requirements
-
 # Compare local and playground
 if [ "$flg_compare_lcl_and_pg" == "true" ]; then
 	compare_lcl_and_pg
+	exit 0
+fi
+
+# Check if carrier scac and service name are set
+if [ "$#" -eq 0 ]; then
+	# No flags provided
+    :
+else
+    check_action_requirements
 fi
 
 # Compare local and qa-int
