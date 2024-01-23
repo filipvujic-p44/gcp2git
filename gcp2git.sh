@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.23"
+version="v1.0.24"
 author="Filip Vujic"
 last_updated="23-Jan-2024"
 repo_owner="filipvujic-p44"
@@ -853,21 +853,57 @@ EOL
 
 # Check if there is a new release on gcp2git GitHub repo
 check_for_updates() {
+    # Local script version
     local local_version=$(echo "$version" | sed 's/^v//')
-    local remote_version=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest" | cat | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
-    local version_result=$(awk -v v1="$local_version" -v v2="$remote_version" 'BEGIN {if (v1==v2) {result=0; exit;}; split(v1, a, "."); split(v2, b, "."); for (i=1; i<=length(a); i++) {if (a[i]<b[i]) {result=1; exit;}} {result=0; exit;}} END {print result}')
-
+    # Latest release text
+    local latest_text=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest")
+    # Latest remote version
+    local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
+    # Check if versions are different
+    local version_result=$(
+    	awk -v v1="$local_version" -v v2="$remote_version" '
+	        BEGIN {
+	            if (v1 == v2) {
+	                result = 0;
+	                exit;
+	            }
+	            split(v1, a, ".");
+	            split(v2, b, ".");
+	            for (i = 1; i <= length(a); i++) {
+	                if (a[i] < b[i]) {
+	                    result = 1;
+	                    exit;
+	                } else if (a[i] > b[i]) {
+	                    result = 2;
+	                    exit;
+	                }
+	            }
+	            result = 0;
+	            exit;
+	        }
+	        END {
+	            print result
+	        }'
+    )   
+    
     if [ "$version_result" -eq 0 ]; then
         echo "Info: You already have the latest script version ($version)."
     elif [ "$version_result" -eq 1 ]; then
+    	local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
         echo "Info: New version available (v$remote_version)."
+        echo "Info: Release notes:"
+        echo "$release_notes"
         echo "Q: Do you want to download and install updates? (Y/n):"
         read do_update
-        if [ "${do_update,,}" == "y" ] || [ -z $push_changes ]; then
+        if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
             install_updates "$remote_version"
         else
             echo "Update canceled. You can visit '$repo/releases' for more info."
         fi
+    elif [ "$version_result" -eq 2 ]; then
+        echo "Info: You somehow have a version that hasn't been released yet ;)"
+        echo "Info: Latest release is v$remote_version."
+        echo "Info: Your version is v$local_version."
     fi
 }
 
