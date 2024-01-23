@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.21"
+version="v1.0.22"
 author="Filip Vujic"
-last_updated="22-Jan-2024"
+last_updated="23-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -28,6 +28,7 @@ Info:
 
 Requirements:
 -------------
+	- wget (for downloading updates)
     - gcloud (for GCP access)
     - python3 (for comparing files)
     - git (for syncing with github repos)
@@ -37,10 +38,10 @@ Installation:
 -------------
     Using '--install' option will create a folder ~/gcp2git and put the script inside.
     That path will be exported to ~/.bashrc so it can be used from anywhere.
-    Script requires gcloud, python3, git and bash-completion, so it will install those packages.
+    Script requires wget, gcloud, python3, git and bash-completion, so it will install those packages.
     Use '--install-y' to preapprove dependencies and run GCloud CLI login after installation.
     Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
-    You can remove gcloud, python3, git and bash-completion dependencies manually, if needed.
+    You can remove wget, gcloud, python3, git and bash-completion dependencies manually, if needed.
 
 Options:
 --------
@@ -118,7 +119,6 @@ Notes:
 ------
     - Tested on WSL Ubuntu 22.04 and WSL Debian 12.4
     - Default mode is 'LTL', default interaction is 'CARRIER_PULL'.
-    - Carrier scac, service name and action are required.
     - Carrier can be specified without using '--scac' flag and is case insensitive.
     - Flags are prioritized over .env file values.
 EOL
@@ -503,6 +503,11 @@ flg_fresh_gcp_qa_int_download=false
 ################################################################################################
 
 
+# Check if wget is installed
+check_wget_installed() {
+	command -v wget &> /dev/null
+}
+
 # Check if GCloud CLI is installed
 check_gcloud_installed() {
 	command -v gcloud &> /dev/null
@@ -536,7 +541,7 @@ install_script() {
 	echo "Info: Installing gcp2git..."
 	script_directory="$(dirname "$(readlink -f "$0")")"
 	# Check if requirements installed
-	if ! check_gcloud_installed || ! check_python_installed || ! check_git_installed || ! check_bash_completion_installed; then
+	if ! check_wget_installed || ! check_gcloud_installed || ! check_python_installed || ! check_git_installed || ! check_bash_completion_installed; then
 		install_dependencies
 	fi
 	# Check if script already installed
@@ -590,6 +595,17 @@ install_script() {
 	echo "Info: You can remove the current script file."
 	echo "Info: Use '-h' or '--help' to get started."
 	exit 0
+}
+
+install_wget() {
+	echo "Info: Installing wget..."
+	if [ "$do_install_y" == "true" ]; then
+		sudo apt install -y wget
+	else
+		sudo apt install wget
+	fi
+	echo "Info: Wget installed."
+	
 }
 
 install_gcloud() {
@@ -658,6 +674,11 @@ install_bash_completion() {
 
 install_dependencies() {
 	sudo apt update
+	# Check if wget is installed
+	if ! check_wget_installed; then
+		install_wget
+	fi
+	
 	# Check if GCloud CLI is installed
 	if ! check_gcloud_installed; then
 		install_gcloud
@@ -703,7 +724,7 @@ clean_up_installation() {
 uninstall_script() {
 	echo "Info: Uninstaling script..."
 	clean_up_installation
-	echo "Info: Script required gcloud, python3, git and bash-completion installed."
+	echo "Info: Script required wget, gcloud, python3, git and bash-completion installed."
 	echo "Info: You can remove these packages manually if needed."
 	echo "Info: Uninstall completed."
 	exit 0
@@ -848,6 +869,13 @@ check_for_updates() {
 # Check if all necessary changes are done during installation
 check_installation() {
 	local cnt_missing=0
+	if check_wget_installed; then
+		echo "Info: wget ------------------- OK."
+	else
+		echo "Error: wget ------------------ NOT FOUND."
+		((cnt_missing++))
+	fi
+
 	if check_gcloud_installed; then
 		echo "Info: gcloud ----------------- OK."
 	else
@@ -973,6 +1001,11 @@ check_service_set() {
 
 # Check requirements before calling any action
 check_action_requirements() {
+
+	if ! check_wget_installed; then
+		echo "Info: Wget is not installed. Installing updates may not work properly."
+	fi
+
 	if ! check_gcloud_installed; then
 		echo "Info: GCloud CLI is not installed. You may not have access to GCP."
 	fi
