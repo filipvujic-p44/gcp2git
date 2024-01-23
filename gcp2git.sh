@@ -28,7 +28,7 @@ Info:
 
 Requirements:
 -------------
-	- wget (for downloading updates)
+    - wget (for downloading updates)
     - gcloud (for GCP access)
     - python3 (for comparing files)
     - git (for syncing with github repos)
