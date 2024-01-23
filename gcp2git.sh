@@ -214,6 +214,7 @@ EOL
 
 
 # Initialize variables to default values
+flg_args_passed=false
 do_install=false
 do_install_y=false
 do_uninstall=false
@@ -242,6 +243,10 @@ interaction="CARRIER_PULL"
 service=""
 carrier=""
 
+# Check if any args are passed to the script
+if [ ! -z "$1" ]; then
+	flg_args_passed=true
+fi
 
 # Load local .env_gcp2git file
 if [ -e ".env_gcp2git" ]; then
@@ -1440,14 +1445,10 @@ if [ "$flg_compare_lcl_and_pg" == "true" ]; then
 	exit 0
 fi
 
-check_action_requirements
-# If any flag is used, check if carrier scac and service name are set
-#if [ "$#" -eq 0 ]; then
-#    # No flags provided
-#    :
-#else
-#    check_action_requirements
-#fi
+# If any args are passed, check if carrier scac and service name are set
+if [ "$flg_args_passed" == "true" ]; then
+	check_action_requirements
+fi
 
 # Compare local and qa-int
 if [ "$flg_compare_lcl_and_int" == "true" ]; then
