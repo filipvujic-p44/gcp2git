@@ -214,6 +214,7 @@ EOL
 
 
 # Initialize variables to default values
+cnt_flags=0
 do_install=false
 do_install_y=false
 do_uninstall=false
@@ -252,66 +253,79 @@ if [ -e ".env_gcp2git" ]; then
 
 	# Load compare value
 	if [ ! -z "$COMPARE" ]; then
+		((cnt_flags++))
 		flg_compare="$COMPARE"
 	fi
 
 	# Load compare local and pg value
 	if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
+		((cnt_flags++))
 		flg_compare_lcl_and_pg="$COMPARE_LCL_AND_PG"
 	fi
 
 	# Load compare local and int value
 	if [ ! -z "$COMPARE_LCL_AND_INT" ]; then
+		((cnt_flags++))
 		flg_compare_lcl_and_int="$COMPARE_LCL_AND_INT"
 	fi
 
 	# Load compare pg and int value
 	if [ ! -z "$COMPARE_PG_AND_INT" ]; then
+		((cnt_flags++))
 		flg_compare_pg_and_int="$COMPARE_PG_AND_INT"
 	fi
 
 	# Load download playground value
 	if [ ! -z "$DOWNLOAD_PG" ]; then
+		((cnt_flags++))
 		flg_download_pg="$DOWNLOAD_PG"
 	fi
 
 	# Load download qa int value
 	if [ ! -z "$DOWNLOAD_QA_INT" ]; then
+		((cnt_flags++))
 		flg_download_qa_int="$DOWNLOAD_QA_INT"
 	fi
 
 	# Load update local from playground value
 	if [ ! -z "$UPDATE_LCL_FROM_PG" ]; then
+		((cnt_flags++))
 		flg_update_lcl_from_pg="$UPDATE_LCL_FROM_PG"
 	fi
 
 	# Load update local from qa-int value
 	if [ ! -z "$UPDATE_LCL_FROM_QA_INT" ]; then
+		((cnt_flags++))
 		flg_update_lcl_from_qa_int="$UPDATE_LCL_FROM_QA_INT"
 	fi
 
 	# Load update playground from local value
 	if [ ! -z "$UPDATE_PG_FROM_LCL" ]; then
+		((cnt_flags++))
 		flg_update_pg_from_lcl="$UPDATE_PG_FROM_LCL"
 	fi
 
 	# Load update playground from qa-int value
 	if [ ! -z "$UPDATE_PG_FROM_QA_INT" ]; then
+		((cnt_flags++))
 		flg_update_pg_from_qa_int="$UPDATE_PG_FROM_QA_INT"
 	fi
 
 	# Load update github from playground value
 	if [ ! -z "$UPDATE_GH_FROM_PG" ]; then
+		((cnt_flags++))
 		flg_update_gh_from_pg="$UPDATE_GH_FROM_PG"
 	fi
 
 	# Load update github from qa-int value
 	if [ ! -z "$UPDATE_GH_FROM_QA_INT" ]; then
+		((cnt_flags++))
 		flg_update_gh_from_qa_int="$UPDATE_GH_FROM_QA_INT"
 	fi
 
 	# Load update all from qa-int value
 	if [ ! -z "$UPDATE_ALL_FROM_QA_INT" ]; then
+		((cnt_flags++))
 		flg_update_all_from_qa_int="$UPDATE_ALL_FROM_QA_INT"
 	fi
 
@@ -999,9 +1013,8 @@ check_service_set() {
 	return 0
 }
 
-# Check requirements before calling any action
-check_action_requirements() {
-
+# Check if all dependencies are installed
+check_dependencies() {
 	if ! check_wget_installed; then
 		echo "Info: Wget is not installed. Installing updates may not work properly."
 	fi
@@ -1018,6 +1031,13 @@ check_action_requirements() {
 		echo "Info: Git is not installed. Syncing with GitHub may not work properly."
 	fi
 
+	if ! check_bash_completion_installed; then
+		echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
+	fi
+}
+
+# Check requirements before calling any action
+check_action_requirements() {
 	if ! check_carrier_set; then
 		echo "Error: No carrier scac provided!"
 		exit 1
@@ -1382,6 +1402,9 @@ update_github() {
 
 # General
 
+# Check if dependencies are installed
+check_dependencies
+
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
 	check_for_updates
@@ -1425,6 +1448,7 @@ if [ "$flg_compare" == "true" ]; then
 	exit 0
 fi
 
+# Check if carrier scac and service name are set
 check_action_requirements
 
 # Compare local and playground
