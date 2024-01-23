@@ -1442,7 +1442,7 @@ fi
 
 # If any flag is used, check if carrier scac and service name are set
 if [ "$#" -eq 0 ]; then
-	# No flags provided
+    # No flags provided
     :
 else
     check_action_requirements
