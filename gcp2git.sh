@@ -1440,13 +1440,14 @@ if [ "$flg_compare_lcl_and_pg" == "true" ]; then
 	exit 0
 fi
 
+check_action_requirements
 # If any flag is used, check if carrier scac and service name are set
-if [ "$#" -eq 0 ]; then
-    # No flags provided
-    :
-else
-    check_action_requirements
-fi
+#if [ "$#" -eq 0 ]; then
+#    # No flags provided
+#    :
+#else
+#    check_action_requirements
+#fi
 
 # Compare local and qa-int
 if [ "$flg_compare_lcl_and_int" == "true" ]; then
