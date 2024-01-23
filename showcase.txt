@@ -1,8 +1,0 @@
-- set up bashrc aliases and git test repo with ssh
-
-- version and help
-- installation and dependencies
-- 
-
-- check installation
-- 
