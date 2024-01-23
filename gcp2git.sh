@@ -861,35 +861,35 @@ check_for_updates() {
     local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
     # Check if versions are different
     local version_result=$(
-    	awk -v v1="$local_version" -v v2="$remote_version" '
-	        BEGIN {
-	            if (v1 == v2) {
-	                result = 0;
-	                exit;
-	            }
-	            split(v1, a, ".");
-	            split(v2, b, ".");
-	            for (i = 1; i <= length(a); i++) {
-	                if (a[i] < b[i]) {
-	                    result = 1;
-	                    exit;
-	                } else if (a[i] > b[i]) {
-	                    result = 2;
-	                    exit;
-	                }
-	            }
-	            result = 0;
-	            exit;
-	        }
-	        END {
-	            print result
-	        }'
+        awk -v v1="$local_version" -v v2="$remote_version" '
+            BEGIN {
+                if (v1 == v2) {
+                    result = 0;
+                    exit;
+                }
+                split(v1, a, ".");
+                split(v2, b, ".");
+                for (i = 1; i <= length(a); i++) {
+                    if (a[i] < b[i]) {
+                        result = 1;
+                        exit;
+                    } else if (a[i] > b[i]) {
+                        result = 2;
+                        exit;
+                    }
+                }
+                result = 0;
+                exit;
+            }
+            END {
+                print result
+            }'
     )   
     
     if [ "$version_result" -eq 0 ]; then
         echo "Info: You already have the latest script version ($version)."
     elif [ "$version_result" -eq 1 ]; then
-    	local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
+        local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
         echo "Info: New version available (v$remote_version)."
         echo "Info: Release notes:"
         echo "$release_notes"
