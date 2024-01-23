@@ -1137,7 +1137,7 @@ update_file_content() {
 			destination_path="$destination_folder/$filename"
 			# Check if the destination file exists
 			if [ ! -e "$destination_path" ]; then
-				echo "Info: Destination file '$destination_path' does not exist. Copying $source_file to $destination_folder."
+				echo "Info: Destination file '$destination_path' does not exist. Creating '$filename' in '$destination_folder'."
 				cp "$source_file" "$destination_folder"
 			# Update local files if flag set
 			elif [ -e "$destination_path" ]; then
