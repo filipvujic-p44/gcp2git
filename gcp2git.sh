@@ -1002,7 +1002,7 @@ check_service_set() {
 # Check if all dependencies are installed
 check_dependencies() {
 	if ! check_wget_installed; then
-			echo "Info: Wget is not installed. Installing updates may not work properly."
+        echo "Info: Wget is not installed. Installing updates may not work properly."
 	fi
 
 	if ! check_gcloud_installed; then
@@ -1440,7 +1440,7 @@ if [ "$flg_compare_lcl_and_pg" == "true" ]; then
 	exit 0
 fi
 
-# Check if carrier scac and service name are set
+# If any flag is used, check if carrier scac and service name are set
 if [ "$#" -eq 0 ]; then
 	# No flags provided
     :
