@@ -1483,7 +1483,7 @@ fi
 
 # If any args are passed, check if carrier scac and service name are set
 if [ "$flg_args_passed" == "true" ]; then
-	echo "$flg_args_passed"
+    echo "$flg_args_passed"
     check_action_requirements
 fi
 
