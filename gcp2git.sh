@@ -1146,10 +1146,13 @@ compare_files() {
                     echo "Q: Show diff (y/N)?"
                     read show_diff
                     if [ "${show_diff,,}" == "y" ]; then
-                        echo "Info: File content: $target_folder_file_path"
-                        grep -nFxvf "$source_file" "$target_folder_file_path"
+                        # Print lines that your local file contains, but the remote one doesn't
                         echo "Info: File content: $source_file"
                         grep -nFxvf "$target_folder_file_path" "$source_file"
+                        # Print lines that the remote file contains, but your local one doesn't
+                        echo "Info: File content: $target_folder_file_path"
+                        grep -nFxvf "$source_file" "$target_folder_file_path"
+                        
                     fi
                     ((diffCount++))
                 fi
