@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.24"
+version="v1.0.25"
 author="Filip Vujic"
-last_updated="23-Jan-2024"
+last_updated="24-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -250,7 +250,7 @@ fi
 
 # Load local .env_gcp2git file
 if [ -e ".env_gcp2git" ]; then
-    # echo "Loading values from local .env file."
+    flg_args_passed=true
     source .env_gcp2git
 
     # Set actions from .env
@@ -1483,6 +1483,7 @@ fi
 
 # If any args are passed, check if carrier scac and service name are set
 if [ "$flg_args_passed" == "true" ]; then
+    echo "$flg_args_passed"
     check_action_requirements
 fi
 
