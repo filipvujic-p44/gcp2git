@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.25"
+version="v1.0.26"
 author="Filip Vujic"
 last_updated="24-Jan-2024"
 repo_owner="filipvujic-p44"
@@ -588,6 +588,7 @@ install_script() {
         gcloud auth login $email
         if gcloud auth list | grep -q "$email"; then
             echo "Info: Logged in to GCloud CLI."
+            echo "Info: You can use '--help-gcloud-cli' for more info."
         else
             echo "Error: Something went wrong during GCloud CLI login attempt."
         fi
@@ -1145,9 +1146,9 @@ compare_files() {
                     echo "Q: Show diff (y/N)?"
                     read show_diff
                     if [ "${show_diff,,}" == "y" ]; then
-                        echo "Info: File content: $source_file"
-                        grep -nFxvf "$source_file" "$target_folder_file_path"
                         echo "Info: File content: $target_folder_file_path"
+                        grep -nFxvf "$source_file" "$target_folder_file_path"
+                        echo "Info: File content: $source_file"
                         grep -nFxvf "$target_folder_file_path" "$source_file"
                     fi
                     ((diffCount++))
@@ -1429,8 +1430,10 @@ update_github() {
 
 # General
 
-# Check if all dependencies are installed
-check_dependencies
+# If any args are passed, check if dependencies are installed
+if [ "$flg_args_passed" == "true" ]; then
+    check_dependencies
+fi
 
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
@@ -1483,7 +1486,6 @@ fi
 
 # If any args are passed, check if carrier scac and service name are set
 if [ "$flg_args_passed" == "true" ]; then
-    echo "$flg_args_passed"
     check_action_requirements
 fi
 
