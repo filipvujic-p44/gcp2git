@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.27"
+version="v1.0.28"
 author="Filip Vujic"
 last_updated="25-Jan-2024"
 repo_owner="filipvujic-p44"
@@ -600,16 +600,17 @@ install_script() {
         echo "Info: Use 'gcloud auth list' to check if you are logged in."
         echo "Info: Use '--help-gcloud-cli' for more info."
     fi
-    echo "Info: Log in again to apply changes."
-    echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
-    echo "Info: You can also run 'source ~/.bashrc' to apply changes now."
-    echo "Q: Run 'source ~/.bashrc'? (y/N):"
-    read run_source
-    if [ "${run_source,,}" == "y" ]; then
-        source ~/.bashrc
-        echo "Info: Reloaded '~/.bashrc'."
+    #echo "Info: Log in again to apply changes."
+    #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
+    echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
+    read run_reload
+    if [ "${run_reload,,}" == "y" ]; then
+        exec bash
+        #echo "Info: Reloaded session."
+    else
+        echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
     fi 
-    echo "Info: You can remove the local './gcp2git.sh' script file."
+    echo "Info: Local file './gcp2git.sh' is no longer needed."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
 }
