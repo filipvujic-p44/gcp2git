@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.28"
+version="v1.0.29"
 author="Filip Vujic"
 last_updated="25-Jan-2024"
 repo_owner="filipvujic-p44"
