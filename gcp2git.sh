@@ -579,8 +579,8 @@ install_script() {
     echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
     echo "Info: Paths added to '~/.bashrc'."
     # Export path and refresh source
-    export PATH=$PATH:~/gcp2git/main
-    source ~/gcp2git/util/gcp2git_autocomplete.sh
+    #export PATH=$PATH:~/gcp2git/main
+    #source ~/gcp2git/util/gcp2git_autocomplete.sh
     # Print success message
     echo "Info: Success. Script installed in '~/gcp2git/' folder."
     # If '--install-y' was used, set up gcloud auth
@@ -600,9 +600,15 @@ install_script() {
         echo "Info: Use 'gcloud auth list' to check if you are logged in."
         echo "Info: Use '--help-gcloud-cli' for more info."
     fi
-    #echo "Info: Log in again to apply changes."
-    #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
-    #echo "Info: You can also run 'source ~/.bashrc'." 
+    echo "Info: Log in again to apply changes."
+    echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
+    echo "Info: You can also run 'source ~/.bashrc' to apply changes now."
+    echo "Q: Run 'source ~/.bashrc'? (y/N):"
+    read run_source
+    if [ "${run_source,,}" == "y" ]; then
+        source ~/.bashrc
+        echo "Info: Reloaded '~/.bashrc'."
+    fi 
     echo "Info: You can remove the local './gcp2git.sh' script file."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
