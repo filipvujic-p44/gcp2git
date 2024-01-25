@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.0.26"
+version="v1.0.27"
 author="Filip Vujic"
-last_updated="24-Jan-2024"
+last_updated="25-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -564,22 +564,25 @@ install_script() {
     # Clean up possible leftovers or previous installation
     clean_up_installation
     # Set up gcp2git home folder
-    echo "Info: Setting up '~/gcp2git' directory..."
+    echo "Info: Setting up '~/gcp2git/' directory..."
     mkdir ~/gcp2git
     mkdir ~/gcp2git/main
     mkdir ~/gcp2git/util
     cp $script_directory/gcp2git.sh ~/gcp2git/main
     # Generate autocomplete script
     generate_autocomplete_script
-    echo "Info: Setting up '~/gcp2git' directory completed."
+    echo "Info: Setting up '~/gcp2git/' directory completed."
     # Set up bashrc inserts
     echo "Info: Adding paths to '~/.bashrc'..."
     echo "# gcp2git script" >> ~/.bashrc
     echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
     echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
     echo "Info: Paths added to '~/.bashrc'."
+    # Export path and refresh source
+    export PATH=$PATH:~/gcp2git/main
+    source ~/gcp2git/util/gcp2git_autocomplete.sh
     # Print success message
-    echo "Info: Success. Script installed in '~/gcp2git' folder."
+    echo "Info: Success. Script installed in '~/gcp2git/' folder."
     # If '--install-y' was used, set up gcloud auth
     if [ "$do_install_y" == "true" ]; then
         echo "Info: Setting up GCloud CLI login..."
@@ -588,17 +591,19 @@ install_script() {
         gcloud auth login $email
         if gcloud auth list | grep -q "$email"; then
             echo "Info: Logged in to GCloud CLI."
-            echo "Info: You can use '--help-gcloud-cli' for more info."
+            echo "Info: Use '--help-gcloud-cli' for more info."
         else
             echo "Error: Something went wrong during GCloud CLI login attempt."
         fi
     else
         echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
         echo "Info: Use 'gcloud auth list' to check if you are logged in."
+        echo "Info: Use '--help-gcloud-cli' for more info."
     fi
-    echo "Info: Log in again to apply changes (if on wsl, do 'wsl --shutdown' and reopen in 10s)."
-    echo "Info: Or you can run 'source ~/.bashrc'." 
-    echo "Info: You can remove the current script file."
+    #echo "Info: Log in again to apply changes."
+    #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
+    #echo "Info: You can also run 'source ~/.bashrc'." 
+    echo "Info: You can remove the local './gcp2git.sh' script file."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
 }
@@ -891,20 +896,20 @@ check_for_updates() {
         echo "Info: You already have the latest script version ($version)."
     elif [ "$version_result" -eq 1 ]; then
         local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
-        echo "Info: New version available (v$remote_version)."
+        echo "Info: New version available (v$remote_version). Your version is (v$local_version)."
         echo "Info: Release notes:"
         echo "$release_notes"
+        echo "Info: Visit '$repo/releases' for more info."
         echo "Q: Do you want to download and install updates? (Y/n):"
         read do_update
         if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
             install_updates "$remote_version"
         else
-            echo "Update canceled. You can visit '$repo/releases' for more info."
+            echo "Info: Update canceled."
         fi
     elif [ "$version_result" -eq 2 ]; then
         echo "Info: You somehow have a version that hasn't been released yet ;)"
-        echo "Info: Latest release is v$remote_version."
-        echo "Info: Your version is v$local_version."
+        echo "Info: Latest release is (v$remote_version). Your version is (v$local_version)."
     fi
 }
 
@@ -947,9 +952,9 @@ check_installation() {
     fi
         
     if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
-        echo "Info: ~/.gcp2git ------------- OK."
+        echo "Info: ~/gcp2git/ ------------- OK."
     else
-        echo "Error: ~/.gcp2git ------------ NOT OK."
+        echo "Error: ~/gcp2git/ ------------ NOT OK."
         ((cnt_missing++))
     fi
 
@@ -1138,19 +1143,19 @@ compare_files() {
                 # If files are .json type, try to fix the formatting
                 elif [[ "$source_file" == *.json ]] &&
                     diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &> /dev/null; then
-                    echo "Info: File '$source_file' has matching content, but different formatting."
+                    echo "Info: File '$filename' has matching content, but different formatting."
                     ((diffCount++))
                 else
                     # Handle file diff
-                    echo "Info: File $filename doesn't have matching content."
+                    echo "Info: File '$filename' doesn't have matching content."
                     echo "Q: Show diff (y/N)?"
                     read show_diff
                     if [ "${show_diff,,}" == "y" ]; then
                         # Print lines that your local file contains, but the remote one doesn't
-                        echo "Info: File content: $source_file"
+                        echo "Info: File content: '$source_file':"
                         grep -nFxvf "$target_folder_file_path" "$source_file"
                         # Print lines that the remote file contains, but your local one doesn't
-                        echo "Info: File content: $target_folder_file_path"
+                        echo "Info: File content: '$target_folder_file_path':"
                         grep -nFxvf "$source_file" "$target_folder_file_path"
                         
                     fi
@@ -1194,7 +1199,7 @@ update_file_content() {
             elif [ -e "$destination_path" ]; then
                 # Copy the content of the source file to the destination file
                 cat "$source_file" > "$destination_path"
-                echo "Info: Copied content of '$source_file' to '$destination_path'"
+                echo "Info: Copied content of '$source_file' to '$destination_path'."
             else
                 :
             fi
