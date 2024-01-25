@@ -605,8 +605,8 @@ install_script() {
     echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
     read run_reload
     if [ "${run_reload,,}" == "y" ]; then
-        source ~/.bashrc
-        echo "Info: Reloaded '~/.bashrc'."
+        exec bash
+        #echo "Info: Reloaded session."
     else
         echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
     fi 
