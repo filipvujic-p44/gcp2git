@@ -1428,7 +1428,7 @@ update_all_from_qa_int() {
     download_from_qa_int
     upload_to_pg "$local_qa_int_folder"
     update_local_from_source "$local_qa_int_folder"
-    update_git_from_qa_int
+    update_github
 }
 
 # Updates/creates .gitignore file and commits changes
@@ -1552,6 +1552,11 @@ fi
 # Update GitHub from qa-int
 if [ "$flg_update_gh_from_qa_int" == "true" ]; then
     update_github_from_qa_int
+fi
+
+# Update local, GitHub and playground from qa-int
+if [ "$flg_update_all_from_qa_int" == "true" ]; then
+    update_all_from_qa_int
 fi
 
 
