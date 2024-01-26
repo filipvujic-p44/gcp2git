@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.0.29"
+version="v1.0.30"
 author="Filip Vujic"
 last_updated="25-Jan-2024"
 repo_owner="filipvujic-p44"
@@ -602,14 +602,15 @@ install_script() {
     fi
     #echo "Info: Log in again to apply changes."
     #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
-    echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
-    read run_reload
-    if [ "${run_reload,,}" == "y" ]; then
-        exec bash
-        #echo "Info: Reloaded session."
-    else
-        echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
-    fi 
+    echo "Info: Run 'source ~/.bashrc' to apply changes in current session."
+    # echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
+    # read run_reload
+    # if [ "${run_reload,,}" == "y" ]; then
+        # exec bash
+        # #echo "Info: Reloaded session."
+    # else
+        # echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
+    # fi
     echo "Info: Local file './gcp2git.sh' is no longer needed."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
