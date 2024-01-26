@@ -602,14 +602,15 @@ install_script() {
     fi
     #echo "Info: Log in again to apply changes."
     #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
-    echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
-    read run_reload
-    if [ "${run_reload,,}" == "y" ]; then
-        exec bash
-        #echo "Info: Reloaded session."
-    else
-        echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
-    fi 
+    echo "Info: Run 'source ~/.bashrc' to apply changes in current session."
+    # echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
+    # read run_reload
+    # if [ "${run_reload,,}" == "y" ]; then
+        # exec bash
+        # #echo "Info: Reloaded session."
+    # else
+        # echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
+    # fi
     echo "Info: Local file './gcp2git.sh' is no longer needed."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
