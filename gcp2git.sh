@@ -1,15 +1,17 @@
 #!/bin/bash
-version="v1.0.30"
+version="v1.1.0"
 author="Filip Vujic"
-last_updated="25-Jan-2024"
+last_updated="29-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
 
 
+
 ###########################################################################################
 ###################################### Info and help ######################################
 ###########################################################################################
+
 
 
 # Help text
@@ -48,13 +50,10 @@ Options:
     gcp2git.sh [-v | --version] [-h | --help] [--help-usage] [--help-gcloud-cli] 
                [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
-               [--generate-env-file] [--update-gitignore-file] [--compare] 
-               [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
-               [--download-pg] [--download-int] 
-               [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
-               [--update-pg-from-int] [--update-gh-from-pg] [--update-gh-from-int] 
-               [--update-all-from-int] [--ltl] [--tl] [--carrier-push] 
-               [--carrier-pull] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--generate-env-file] [--update-gitignore-file] 
+               [--compare] [--download] [--update] [--update-lcl-pg-gh] 
+               [--ltl] [--tl] [--carrier-push] [--carrier-pull] 
+               [--rating] [--dispatch] [--tracking] [--imaging] 
                [--scac <carrier_scac>] <carrier_scac>
 
 Options (details):
@@ -75,19 +74,20 @@ Options (details):
         --update-gitignore-file       Update '.gitignore' file.
 
     actions:
-        --compare                     Compare files from two local folders.
-        --compare-lcl-and-pg          Download playground files and compare content with local files.
-        --compare-lcl-and-int         Download qa-int files and compare content with local files.
-        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
-        --download-pg                 Download remote playground files.
-        --download-int                Download remote qa-int files.
-        --update-lcl-from-pg          Update local files from GCP playground.
-        --update-lcl-from-int         Update local files from GCP qa-int.
-        --update-pg-from-lcl          Update GCP playground files from local.
-        --update-pg-from-int          Update GCP playground files from GCP qa-int.
-        --update-gh-from-pg           Update GitHub files from GCP playground.
-        --update-gh-from-int          Update GitHub files from GCP qa-int.
-        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+        --compare                     Compare files from any two local/remote folders.
+        --download                    Download remote gcp files.
+        --update                      Update files from-to environment.
+        --update-lcl-pg-gh            Update local, playground and GitHub files from given environment.
+
+    environment shortcuts:
+        lcl                           Current local folder.
+        gh                            Current GitHub repo.
+        pg                            GCP playground.
+        int                           GCP qa-integration.
+        stg                           GCP qa-stage.
+        sbx                           GCP sandbox.
+        eu                            GCP eu-production.
+        us                            GCP us-production.
 
     transportation-modes:
         --ltl                         Set mode to 'LTL' (default value).
@@ -132,19 +132,20 @@ USAGE HELP:
 Options:
 --------
     actions:
-        --compare                     Compare files from two local folders.
-        --compare-lcl-and-pg          Download playground files and compare content with local files.
-        --compare-lcl-and-int         Download qa-int files and compare content with local files.
-        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
-        --download-pg                 Download remote playground files.
-        --download-int                Download remote qa-int files.
-        --update-lcl-from-pg          Update local files from GCP playground.
-        --update-lcl-from-int         Update local files from GCP qa-int.
-        --update-pg-from-lcl          Update GCP playground files from local.
-        --update-pg-from-int          Update GCP playground files from GCP qa-int.
-        --update-gh-from-pg           Update GitHub files from GCP playground.
-        --update-gh-from-int          Update GitHub files from GCP qa-int.
-        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+        --compare                     Compare files from any two local/remote folders. 
+        --download                    Download remote gcp files.
+        --update                      Update files from-to environment.
+        --update-lcl-pg-gh            Update local, playground and GitHub files from given environment.
+
+    environment shortcuts:
+        lcl                           Current local folder.
+        gh                            Current GitHub repo.
+        pg                            GCP playground.
+        int                           GCP qa-integration.
+        stg                           GCP qa-stage.
+        sbx                           GCP sandbox.
+        eu                            GCP eu-production.
+        us                            GCP us-production.
 
     transportation-modes:
         --ltl                         Set mode to 'LTL' (default value).
@@ -208,9 +209,11 @@ EOL
 )
 
 
+
 ############################################################################################
 ###################################### Vars and flags ######################################
 ############################################################################################
+
 
 
 # Initialize variables to default values
@@ -222,22 +225,27 @@ do_chk_install_=false
 # ref_chk_for_updates (do not change comment)
 flg_chk_for_updates=false
 flg_generate_env_file=false
-flg_compare=false
-flg_compare_lcl_and_pg=false
-flg_compare_lcl_and_int=false
-flg_compare_pg_and_int=false
-flg_download_pg=false
-flg_download_qa_int=false
-flg_update_lcl_from_pg=false
-flg_update_lcl_from_qa_int=false
-flg_update_pg_from_lcl=false
-flg_update_pg_from_qa_int=false
-flg_update_gh_from_pg=false
-flg_update_gh_from_qa_int=false
-flg_update_all_from_qa_int=false
+
+flg_compare_from_to_env=false
+flg_download_from_env=false
+
+flg_downloaded_playground=false
+flg_downloaded_qa_int=false
+flg_downloaded_qa_stage=false
+flg_downloaded_sandbox=false
+flg_downloaded_eu_prod=false
+flg_downloaded_us_prod=false
+
+flg_update_from_to_env=false
+flg_update_lcl_pg_gh_from_env=false
 
 gcp_pg_base_url="gs://p44-datafeed-pipeline/qa-int/src"
 gcp_qa_int_base_url="gs://p44-integration-us-central1-data-feed-plan-definitions-int/qa-int/src"
+gcp_qa_stage_base_url="gs://p44-staging-us-central1-data-feed-plan-definitions-staging/qa-stage/src"
+gcp_sandbox_base_url="gs://p44-sandbox-us-data-feed-plan-definitions/sandbox/src"
+gcp_eu_prod_base_url="gs://p44-production-eu-data-feed-plan-definitions/production-eu/src"
+gcp_us_prod_base_url="gs://data-feed-plan-definitions-prod-prod-us-central1-582378/production/src"
+
 mode="LTL"
 interaction="CARRIER_PULL"
 service=""
@@ -253,73 +261,6 @@ if [ -e ".env_gcp2git" ]; then
     flg_args_passed=true
     source .env_gcp2git
 
-    # Set actions from .env
-
-    # Load compare value
-    if [ ! -z "$COMPARE" ]; then
-        flg_compare="$COMPARE"
-    fi
-
-    # Load compare local and pg value
-    if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
-        flg_compare_lcl_and_pg="$COMPARE_LCL_AND_PG"
-    fi
-
-    # Load compare local and int value
-    if [ ! -z "$COMPARE_LCL_AND_INT" ]; then
-        flg_compare_lcl_and_int="$COMPARE_LCL_AND_INT"
-    fi
-
-    # Load compare pg and int value
-    if [ ! -z "$COMPARE_PG_AND_INT" ]; then
-        flg_compare_pg_and_int="$COMPARE_PG_AND_INT"
-    fi
-
-    # Load download playground value
-    if [ ! -z "$DOWNLOAD_PG" ]; then
-        flg_download_pg="$DOWNLOAD_PG"
-    fi
-
-    # Load download qa int value
-    if [ ! -z "$DOWNLOAD_QA_INT" ]; then
-        flg_download_qa_int="$DOWNLOAD_QA_INT"
-    fi
-
-    # Load update local from playground value
-    if [ ! -z "$UPDATE_LCL_FROM_PG" ]; then
-        flg_update_lcl_from_pg="$UPDATE_LCL_FROM_PG"
-    fi
-
-    # Load update local from qa-int value
-    if [ ! -z "$UPDATE_LCL_FROM_QA_INT" ]; then
-        flg_update_lcl_from_qa_int="$UPDATE_LCL_FROM_QA_INT"
-    fi
-
-    # Load update playground from local value
-    if [ ! -z "$UPDATE_PG_FROM_LCL" ]; then
-        flg_update_pg_from_lcl="$UPDATE_PG_FROM_LCL"
-    fi
-
-    # Load update playground from qa-int value
-    if [ ! -z "$UPDATE_PG_FROM_QA_INT" ]; then
-        flg_update_pg_from_qa_int="$UPDATE_PG_FROM_QA_INT"
-    fi
-
-    # Load update github from playground value
-    if [ ! -z "$UPDATE_GH_FROM_PG" ]; then
-        flg_update_gh_from_pg="$UPDATE_GH_FROM_PG"
-    fi
-
-    # Load update github from qa-int value
-    if [ ! -z "$UPDATE_GH_FROM_QA_INT" ]; then
-        flg_update_gh_from_qa_int="$UPDATE_GH_FROM_QA_INT"
-    fi
-
-    # Load update all from qa-int value
-    if [ ! -z "$UPDATE_ALL_FROM_QA_INT" ]; then
-        flg_update_all_from_qa_int="$UPDATE_ALL_FROM_QA_INT"
-    fi
-
     # Set URLs from .env
 
     # Load playground base URL value
@@ -330,6 +271,26 @@ if [ -e ".env_gcp2git" ]; then
     # Load qa int base URL value
     if [ ! -z "$QA_INT_BASE_URL" ]; then
         qa_int_base_url="$QA_INT_BASE_URL"
+    fi
+
+        # Load sandbox base URL value
+    if [ ! -z "$QA_STAGE_BASE_URL" ]; then
+        qa_stage_base_url="$QA_STAGE_BASE_URL"
+    fi
+
+    # Load sandbox base URL value
+    if [ ! -z "$SANDBOX_BASE_URL" ]; then
+        sandbox_base_url="$SANDBOX_BASE_URL"
+    fi
+
+        # Load eu prod base URL value
+    if [ ! -z "$EU_PROD_BASE_URL" ]; then
+        eu_prod_base_url="$EU_PROD_BASE_URL"
+    fi
+
+    # Load us prod base URL value
+    if [ ! -z "$US_PROD_BASE_URL" ]; then
+        us_prod_url="$US_PROD_BASE_URL"
     fi
 
     # Set integration details from .env
@@ -416,46 +377,26 @@ while [ "$1" != "" ]; do
             flg_update_gitignore=true
             ;;
         --compare)
-            flg_compare=true
-            cmp_folder_1="${2}"
-            cmp_folder_2="${3}"
-            shift 3  # Shift by three positions to consume the flag and its two arguments
+            flg_compare_from_to_env=true
+            compare_dir_1="${2}"
+            compare_dir_2="${3}"
+            shift 3 # Shift by three positions to consume the flag and its two arguments
             ;;
-        --compare-lcl-and-pg)
-            flg_compare_lcl_and_pg=true
+        --download)
+            flg_download_from_env=true
+            download_env="${2}"
+            shift 2 # Shift by two positions to consume the flag and its argument
             ;;
-        --compare-lcl-and-int)
-            flg_compare_lcl_and_int=true
+        --update)
+            flg_update_from_to_env=true
+            update_from_env="${2}"
+            update_to_env="${3}"
+            shift 3 # Shift by three positions to consume the flag and its two arguments
             ;;
-        --compare-pg-and-int)
-            flg_compare_pg_and_int=true
-            ;;
-        --download-pg)
-            flg_download_pg=true
-            ;;
-        --download-int)
-            flg_download_qa_int=true
-            ;;
-        --update-lcl-from-pg)
-            flg_update_lcl_from_pg=true
-            ;;
-        --update-lcl-from-int)
-            flg_update_lcl_from_qa_int=true
-            ;;
-        --update-pg-from-lcl)
-            flg_update_pg_from_lcl=true
-            ;;
-        --update-pg-from-int)
-            flg_update_pg_from_qa_int=true
-            ;;
-        --update-gh-from-pg)
-            flg_update_gh_from_pg=true
-            ;;
-        --update-gh-from-int)
-            flg_update_gh_from_qa_int=true
-            ;;
-        --update-all-from-int)
-            flg_update_all_from_qa_int=true
+        --update-lcl-pg-gh)
+            flg_update_lcl_pg_gh_from_env=true
+            update_from_env="${2}"
+            shift 2 # Shift by two positions to consume the flag and its argument
             ;;
         --ltl)
             mode="LTL"
@@ -492,20 +433,27 @@ while [ "$1" != "" ]; do
 done
 
 # Set local folder paths
-local_pg_folder="./downloaded_playground_${mode}_${interaction}_${service}_${carrier}"
+local_playground_folder="./downloaded_playground_${mode}_${interaction}_${service}_${carrier}"
 local_qa_int_folder="./downloaded_qa_int_${mode}_${interaction}_${service}_${carrier}"
-gcp_pg_upload_dir_url="$gcp_pg_base_url/$mode/$service/$interaction"
-gcp_pg_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
-gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
+local_qa_stage_folder="./downloaded_qa_stage_${mode}_${interaction}_${service}_${carrier}"
+local_sandbox_folder="./downloaded_sandbox_${mode}_${interaction}_${service}_${carrier}"
+local_eu_prod_folder="./downloaded_eu_prod_${mode}_${interaction}_${service}_${carrier}"
+local_us_prod_folder="./downloaded_us_prod_${mode}_${interaction}_${service}_${carrier}"
 
-# Set download-freshness flags
-flg_fresh_gcp_pg_download=false
-flg_fresh_gcp_qa_int_download=false
+gcp_playground_upload_url="$gcp_pg_base_url/$mode/$service/$interaction"
+gcp_playground_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
+gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
+gcp_qa_stage_full_url="$gcp_qa_stage_base_url/$mode/$service/$interaction/$carrier"
+gcp_sandbox_full_url="$gcp_sandbox_base_url/$mode/$service/$interaction/$carrier"
+gcp_eu_prod_full_url="$gcp_eu_prod_base_url/$mode/$service/$interaction/$carrier"
+gcp_us_prod_full_url="$gcp_us_prod_base_url/$mode/$service/$interaction/$carrier"
+
 
 
 ################################################################################################
 ###################################### Dependency check functions ##############################
 ################################################################################################
+
 
 
 # Check if wget is installed
@@ -536,9 +484,11 @@ check_bash_completion_installed() {
 }
 
 
+
 #################################################################################################
 ###################################### Install / Uninstall functions ############################
 #################################################################################################
+
 
 
 # Main installation function
@@ -787,14 +737,26 @@ autocomplete() {
 
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
     options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
-    options+="--update-gitignore-file --compare --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
-    options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
-    options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
+    options+="--update-gitignore-file --compare --download --update --update-all "
     options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
     # Check if --compare is present in the command line arguments
     if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
-        COMPREPLY=(\$(compgen -o plusdirs -o nospace -W "\$(_filedir)" -- "\${cur}"))
+        COMPREPLY=("lcl" "pg" "int" "stg" "sbx" "eu" "us" \$(compgen -o plusdirs -o nospace -W "\$(_filedir)" -- "\${cur}"))
+    elif [[ "\${COMP_WORDS[@]} " =~ " --download " ]]; then
+            COMPREPLY=("pg" "int" "stg" "sbx" "eu" "us")
+    elif [[ "\${COMP_WORDS[@]} " =~ " --update " ]]; then
+        local first_param=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
+        local second_param=("lcl" "pg" "gh")
+
+        case "\${COMP_WORDS[\${#COMP_WORDS[@]}-2]}" in
+            *lcl*|*pg*|*int*|*us*)
+                COMPREPLY=(\$(compgen -W "\${second_param[*]}" -- "\${cur}"))
+                ;;
+            *)
+                COMPREPLY=(\$(compgen -W "\${first_param[*]}" -- "\${cur}"))
+                ;;
+        esac
     else
         COMPREPLY=(\$(compgen -W "\$options" -- "\${cur}"))
     fi
@@ -823,28 +785,16 @@ generate_env_file() {
 # last_updated="$last_updated"
 # github="$repo"
 
-# Fields can be overridden by flags
-
-# ACTIONS
-COMPARE=false
-COMPARE_LCL_AND_PG=false
-COMPARE_LCL_AND_INT=false
-COMPARE_PG_AND_INT=false
-DOWNLOAD_PG=false
-DOWNLOAD_QA_INT=false
-UPDATE_LCL_FROM_PG=false
-UPDATE_LCL_FROM_QA_INT=false
-UPDATE_PG_FROM_LCL=false
-UPDATE_PG_FROM_QA_INT=false
-UPDATE_GH_FROM_PG=false
-UPDATE_GH_FROM_QA_INT=false
-UPDATE_ALL_FROM_QA_INT=false
-
 # URLS (defaults: already set)
 PLAYGROUND_BASE_URL=""
 QA_INT_BASE_URL=""
+QA_STAGE_BASE_URL=""
+SANDBOX_BASE_URL=""
+EU_PROD_BASE_URL=""
+US_PROD_BASE_URL=""
 
 # INTEGRATION DETAILS (defaults: MODE=LTL, INTERACTION=CARRIER_PULL)
+# Fields can be overridden by flags
 # Modes  = [ LTL, TL ]
 MODE=""
 # Interactions = [ CARRIER_PULL, CARRIER_PUSH  ]
@@ -1091,9 +1041,11 @@ check_action_requirements() {
 }
 
 
+
 ###############################################################################################
 ###################################### Utility functions ######################################
 ###############################################################################################
+
 
 
 # Downloads files from GCP.
@@ -1249,7 +1201,7 @@ upload_to_pg() {
             fi
         fi
     done
-    upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_pg_upload_dir_url"
+    upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_playground_upload_url"
     echo "Info: Uploaded files to GCP playground"
     rm -rf "$tmp_dir"
 }
@@ -1321,127 +1273,328 @@ commit_git() {
 }
 
 
+
 ###################################################################################################
 ###################################### Implemented action functions ###############################
 ###################################################################################################
 
 
-# Compare files from two local folders
-compare_local() {
-    if [ -z "$cmp_folder_1" ]; then cmp_folder_1="."; fi
-    if [ -z "$cmp_folder_2" ]; then cmp_folder_2="."; fi
-    echo "Info: Comparing folders '$cmp_folder_1' and '$cmp_folder_2'."
-    compare_files "$cmp_folder_1" "$cmp_folder_2"
-}
 
-# Compare local and playground files
-compare_lcl_and_pg() {
-    download_from_pg
-    compare_files "." $local_pg_folder
-}
-
-# Compare local and qa-int files
-compare_lcl_and_qa_int() {
-    download_from_qa_int
-    compare_files "." $local_qa_int_folder
-}
-
-# Compare playground and qa-int files
-compare_pg_and_qa_int() {
-    download_from_pg
-    download_from_qa_int
-    compare_files $local_pg_folder $local_qa_int_folder
-}
-
-# Download files from GCP playground
-download_from_pg() {
-    echo "Info: Downloading GCP playground files."
-    if [ -d "$local_pg_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
-        rm -r "$local_pg_folder"
-        mkdir "$local_pg_folder"
-    else
-        mkdir "$local_pg_folder"
+# Compare files from two local/remote folders
+compare_envs() {
+    # Check arg count and npe, assign values
+    check_args 2 $@
+    local compare_dir_1=$1
+    local compare_dir_2=$2
+    # Function logic
+    if [ "$compare_dir_1" == "$compare_dir_2" ]; then
+        echo "Error: Same value '$compare_dir_1' provided for source and target folder/environment!"
+        exit 1
     fi
-    if [ "$carrier" == "*" ]; then
-        download_from_gcp "$gcp_pg_full_url" "$local_pg_folder"
-    else
-        download_from_gcp "$gcp_pg_full_url/*" "$local_pg_folder"
+    if [ ! -d "$compare_dir_1" ]; then
+        case "$compare_dir_1" in
+            "lcl")
+                compare_dir_1="."
+                ;;
+            "pg")
+                compare_dir_1="$local_playground_folder"
+                download_from_env "pg"
+                ;;
+            "int")
+                compare_dir_1="$local_qa_int_folder"
+                download_from_env "int"
+                ;;
+            "stg")
+                compare_dir_1="$local_stage_folder"
+                download_from_env "stg"
+                ;;
+            "sbx")
+                compare_dir_1="$local_sandbox_folder"
+                download_from_env "sbx"
+                ;;
+            "eu")
+                compare_dir_1="$local_eu_prod_folder"
+                download_from_env "eu"
+                ;;
+            "us")
+                compare_dir_1="$local_us_prod_folder"
+                download_from_env "us"
+                ;;
+            *)
+                compare_dir_1="."
+                ;;
+        esac
     fi
-    flg_fresh_gcp_pg_download=true
+    if [ ! -d "$compare_dir_2" ]; then
+        case "$compare_dir_2" in
+            "lcl")
+                compare_dir_1="."
+                ;;
+               "pg")
+                compare_dir_2="$local_playground_folder"
+                download_from_env "pg"
+                ;;
+            "int")
+                compare_dir_2="$local_qa_int_folder"
+                download_from_env "int"
+                ;;
+            "stg")
+                compare_dir_2="$local_stage_folder"
+                download_from_env "stg"
+                ;;
+            "sbx")
+                 compare_dir_2="$local_sandbox_folder"
+                 download_from_env "sbx"
+                 ;;
+            "eu")
+                compare_dir_2="$local_eu_prod_folder"
+                download_from_env "eu"
+                ;;
+            "us")
+                compare_dir_2="$local_us_prod_folder"
+                download_from_env "us"
+                ;;
+            *)
+                compare_dir_2="."
+                ;;
+        esac
+    fi
+    echo "Info: Comparing folders '$compare_dir_1' and '$compare_dir_2'."
+    compare_files "$compare_dir_1" "$compare_dir_2"
 }
 
-# Download files from GCP qa-int
-download_from_qa_int() {
-    echo "Info: Downloading GCP qa-int files."
-    if [ -d "$local_qa_int_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
-        rm -r "$local_qa_int_folder"
-        mkdir "$local_qa_int_folder"
-    else
-        mkdir "$local_qa_int_folder"
-    fi
-    if [ "$carrier" == "*" ]; then
-        download_from_gcp "$gcp_qa_int_full_url" "$local_qa_int_folder"
-    else
-        download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
-    fi
-    flg_fresh_gcp_qa_int_download=true
+# Download from any env
+download_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 $@
+    local download_env=$1
+    # Function logic
+    case "$download_env" in
+        "pg")
+            if [ "$flg_downloaded_playground" == "true" ]; then
+                break
+               fi
+            echo "Info: Downloading GCP playground files."
+            if [ -d "$local_playground_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
+                rm -r "$local_playground_folder"
+                mkdir "$local_playground_folder"
+            else
+                mkdir "$local_playground_folder"
+            fi
+            if [ "$carrier" == "*" ]; then
+                   download_from_gcp "$gcp_playground_full_url" "$local_playground_folder"
+               else
+                   download_from_gcp "$gcp_playground_full_url/*" "$local_playground_folder"
+               fi
+               flg_downloaded_playground=true
+            ;;
+        "int")
+            if [ "$flg_downloaded_qa_int" == "true" ]; then
+                break
+               fi
+            echo "Info: Downloading GCP qa-int files."
+              if [ -d "$local_qa_int_folder" ] && [ "$flg_fresh_gcp_qa_int_download" != "true" ]; then
+                  rm -r "$local_qa_int_folder"
+                  mkdir "$local_qa_int_folder"
+              else
+                  mkdir "$local_qa_int_folder"
+              fi
+              if [ "$carrier" == "*" ]; then
+                     download_from_gcp "$gcp_qa_int_full_url" "$local_qa_int_folder"
+                 else
+                     download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
+                 fi
+                 flg_downloaded_qa_int=true
+            ;;
+        "stg")
+               if [ "$flg_downloaded_qa_stage" == "true" ]; then
+                   break
+                  fi
+            echo "Info: Downloading GCP qa-stage files."
+               if [ -d "$local_qa_stage_folder" ] && [ "$flg_fresh_gcp_qa_stage_download" != "true" ]; then
+                   rm -r "$local_qa_stage_folder"
+                   mkdir "$local_qa_stage_folder"
+               else
+                   mkdir "$local_qa_stage_folder"
+               fi
+               if [ "$carrier" == "*" ]; then
+                      download_from_gcp "$gcp_qa_stage_full_url" "$local_qa_stage_folder"
+                  else
+                      download_from_gcp "$gcp_qa_stage_full_url/*" "$local_qa_stage_folder"
+                  fi
+                  flg_downloaded_qa_stage=true
+            ;;
+        "sbx")
+            if [ "$flg_downloaded_sandbox" == "true" ]; then
+                   break
+                  fi
+            echo "Info: Downloading GCP sandbox files."
+               if [ -d "$local_sandbox_folder" ] && [ "$flg_fresh_gcp_sandbox_download" != "true" ]; then
+                   rm -r "$local_sandbox_folder"
+                   mkdir "$local_sandbox_folder"
+               else
+                   mkdir "$local_sandbox_folder"
+               fi
+               if [ "$carrier" == "*" ]; then
+                      download_from_gcp "$gcp_sandbox_full_url" "$local_sandbox_folder"
+                  else
+                      download_from_gcp "$gcp_sandbox_full_url/*" "$local_sandbox_folder"
+                  fi
+                  flg_downloaded_sandbox=true
+            ;;
+        "eu")
+            if [ "$flg_downloaded_eu_prod" == "true" ]; then
+                       break
+               fi
+            echo "Info: Downloading GCP eu-prod files."
+               if [ -d "$local_eu_prod_folder" ] && [ "$flg_fresh_gcp_eu_prod_download" != "true" ]; then
+                   rm -r "$local_eu_prod_folder"
+                   mkdir "$local_eu_prod_folder"
+               else
+                   mkdir "$local_eu_prod_folder"
+               fi
+               if [ "$carrier" == "*" ]; then
+                      download_from_gcp "$gcp_eu_prod_full_url" "$local_eu_prod_folder"
+                  else
+                      download_from_gcp "$gcp_eu_prod_full_url/*" "$local_eu_prod_folder"
+                  fi
+                  flg_downloaded_eu_prod=true
+            ;;
+        "us")
+            if [ "$flg_downloaded_us_prod" == "true" ]; then
+                      break
+               fi
+            echo "Info: Downloading GCP us-prod files."
+              if [ -d "$local_us_prod_folder" ] && [ "$flg_fresh_gcp_us_prod_download" != "true" ]; then
+                  rm -r "$local_us_prod_folder"
+                  mkdir "$local_us_prod_folder"
+              else
+                  mkdir "$local_us_prod_folder"
+              fi
+              if [ "$carrier" == "*" ]; then
+                     download_from_gcp "$gcp_us_prod_full_url" "$local_us_prod_folder"
+                 else
+                     download_from_gcp "$gcp_us_prod_full_url/*" "$local_us_prod_folder"
+                 fi
+                 flg_downloaded_us_prod=true
+            ;;
+        *)
+            echo "Error: Environment '$download_env' not found!"
+            exit 1
+            ;;
+    esac
 }
 
 # Update local files from GCP playground
-update_local_from_pg() {
-    download_from_pg
-    update_local_from_source "$local_pg_folder"
+update_from_to_env() {
+    # Check arg count and npe, assign values
+    check_args 2 $@
+    local update_from_env=$1
+    local update_to_env=$2
+    local from_folder=""
+    # Function logic
+    if [ "$update_from_env" == "$update_to_env" ]; then
+        echo "Error: Same value '$update_from_env' provided for source and target environment!"
+        exit 1
+    fi
+    case "$update_from_env" in
+            "lcl")
+                from_folder="."
+                ;;
+            "pg")
+                download_from_env "pg"
+                from_folder="$local_playground_folder"
+                ;;
+            "int")
+                download_from_env "ing"
+                from_folder="$local_qa_int_folder"
+                ;;
+            "stg")
+                download_from_env "stg"
+                from_folder="$local_stage_folder"
+                ;;
+            "sbx")
+                download_from_env "sbx"
+                from_folder="$local_sandbox_folder"
+                ;;
+            "eu")
+                download_from_env "eu"
+                from_folder="$local_eu_prod_folder"
+                ;;
+            "us")
+                download_from_env "us"
+                from_folder="$local_us_prod_folder"
+                ;;
+            *)
+                echo "Error: Update from environment '$update_from_env' not supported!"
+                exit 1
+                ;;
+        esac
+        case "$update_to_env" in
+               "lcl")
+                update_local_from_source "$from_folder"
+                ;;
+            "pg")
+                upload_to_pg "$from_folder"
+                ;;
+            "gh")
+                update_local_from_source "$from_folder"
+                update_gitignore
+                   commit_git
+                ;;
+            *)
+                echo "Error: Update to environment '$update_to_env' not supported!"
+                   exit 1
+                ;;
+        esac
 }
 
-# Update local files from GCP qa-int
-update_local_from_qa_int() {
-    download_from_qa_int
-    update_local_from_source "$local_qa_int_folder"
-}
-
-# Update GCP playground files from local
-update_pg_from_local() {
-    upload_to_pg "."
-}
-
-# Update GCP playground files from GCP qa-int
-update_pg_from_qa_int() {
-    download_from_qa_int
-    upload_to_pg "$local_qa_int_folder"
-}
-
-# Update GitHub files from GCP playground
-update_github_from_pg() {
-    download_from_pg
-    update_local_from_source "$local_pg_folder"
-    update_github
-}
-
-# Update GitHub files from GCP qa-int
-update_github_from_qa_int() {
-    download_from_qa_int
-    update_local_from_source "$local_qa_int_folder"
-    update_github
-}
-
-# Update local, GitHub and GCP playground files from GCP qa-int
-update_all_from_qa_int() {
-    download_from_qa_int
-    upload_to_pg "$local_qa_int_folder"
-    update_local_from_source "$local_qa_int_folder"
-    update_github
-}
-
-# Updates/creates .gitignore file and commits changes
-update_github() {
+# Update local, playground and GitHub files from given environment
+update_lcl_pg_gh_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 $@
+    local update_from_env=$1
+    local from_folder=""
+    # Function logic
+    case "$update_from_env" in
+        "int")
+            download_from_env "ing"
+            from_folder="$local_qa_int_folder"
+            ;;
+        "stg")
+            download_from_env "stg"
+            from_folder="$local_stage_folder"
+            ;;
+        "sbx")
+            download_from_env "sbx"
+            from_folder="$local_sandbox_folder"
+            ;;
+        "eu")
+            download_from_env "eu"
+            from_folder="$local_eu_prod_folder"
+            ;;
+        "us")
+            download_from_env "us"
+            from_folder="$local_us_prod_folder"
+            ;;
+        *)
+            echo "Error: Update from environment '$update_from_env' not supported!"
+            exit 1
+            ;;
+    esac
+    update_local_from_source "$from_folder"
+    upload_to_pg "$from_folder"
     update_gitignore
     commit_git
 }
 
 
+
+
 ###########################################################################################################################
 ############################################ Flags checks and function calls ##############################################
 ###########################################################################################################################
+
 
 
 # General
@@ -1487,78 +1640,33 @@ if [ "$flg_update_gitignore" == "true" ]; then
     exit 0
 fi
 
-# Action calls
-
-if [ "$flg_compare" == "true" ]; then
-    compare_local
-    exit 0
-fi
-
-# Compare local and playground
-if [ "$flg_compare_lcl_and_pg" == "true" ]; then
-    compare_lcl_and_pg
-    exit 0
-fi
-
 # If any args are passed, check if carrier scac and service name are set
 if [ "$flg_args_passed" == "true" ]; then
     check_action_requirements
 fi
 
-# Compare local and qa-int
-if [ "$flg_compare_lcl_and_int" == "true" ]; then
-    compare_lcl_and_qa_int
+# Action calls
+
+# Compare environments
+if [ "$flg_compare_from_to_env" == "true" ]; then
+    compare_envs "$compare_env_1" "$compare_env_2"
 fi
 
-# Compare playground and qa-int
-if [ "$flg_compare_pg_and_int" == "true" ]; then
-    compare_pg_and_qa_int
+# Download from GCP env
+if [ "$flg_download_from_env" == "true" ]; then
+    download_from_env "$download_env"
 fi
 
-# Download from GCP playground
-if [ "$flg_download_pg" == "true" ]; then
-    download_from_pg
+# Update from/to env
+if [ "$flg_update_from_to_env" == "true" ]; then
+    update_from_to_env "$update_from_env" "$update_to_env"
 fi
 
-# Download from GCP qa-int
-if [ "$flg_download_qa_int" == "true" ]; then
-    download_from_qa_int
+# Update local, GitHub and playground from env
+if [ "$flg_update_lcl_pg_gh_from_env" == "true" ]; then
+    update_lcl_pg_gh_from_env "$update_from_env"
 fi
 
-# Update local from playground
-if [ "$flg_update_lcl_from_pg" == "true" ]; then
-    update_local_from_pg
-fi
-
-# Update local from qa-int
-if [ "$flg_update_lcl_from_qa_int" == "true" ]; then
-    update_local_from_qa_int
-fi
-
-# Update playground from local
-if [ "$flg_update_pg_from_lcl" == "true" ]; then
-    update_pg_from_local
-fi
-
-# Update playground from qa-int
-if [ "$flg_update_pg_from_qa_int" == "true" ]; then
-    update_pg_from_qa_int
-fi
-
-# Update GitHub from playground
-if [ "$flg_update_gh_from_pg" == "true" ]; then
-    update_github_from_pg
-fi
-
-# Update GitHub from qa-int
-if [ "$flg_update_gh_from_qa_int" == "true" ]; then
-    update_github_from_qa_int
-fi
-
-# Update local, GitHub and playground from qa-int
-if [ "$flg_update_all_from_qa_int" == "true" ]; then
-    update_all_from_qa_int
-fi
 
 
 ###################################################################################################
@@ -1566,14 +1674,36 @@ fi
 ###################################################################################################
 
 
+
 # Remove local playground download folder
-if [ -d "$local_pg_folder" ] && { [ "$flg_download_pg" != "true" ] || [ -z "$(ls -A "$local_pg_folder")" ]; }; then
-    rm -r "$local_pg_folder"
+if [ -d "$local_playground_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_playground_folder")" ]; }; then
+    rm -r "$local_playground_folder"
 fi
 
 # Remove local qa-int download folder
-if [ -d "$local_qa_int_folder" ] && { [ "$flg_download_qa_int" != "true" ] || [ -z "$(ls -A "$local_qa_int_folder")" ]; }; then
+if [ -d "$local_qa_int_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_qa_int_folder")" ]; }; then
     rm -r "$local_qa_int_folder"
 fi
+
+# Remove local qa stage download folder
+if [ -d "$local_qa_stage_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_qa_stage_folder")" ]; }; then
+    rm -r "$local_qa_stage_folder"
+fi
+
+# Remove local sandbox download folder
+if [ -d "$local_sandbox_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_sandbox_folder")" ]; }; then
+    rm -r "$local_sandbox_folder"
+fi
+
+# Remove local eu prod download folder
+if [ -d "$local_eu_prod_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_eu_prod_folder")" ]; }; then
+    rm -r "$local_eu_prod_folder"
+fi
+
+# Remove local us prod download folder
+if [ -d "$local_us_prod_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_us_prod_folder")" ]; }; then
+    rm -r "$local_us_prod_folder"
+fi
+
 
 echo "Info: Script completed."
