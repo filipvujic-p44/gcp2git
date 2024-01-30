@@ -1,7 +1,7 @@
 #!/bin/bash
 version="v1.1.0"
 author="Filip Vujic"
-last_updated="29-Jan-2024"
+last_updated="30-Jan-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -109,11 +109,11 @@ Options (details):
 Usage:
 ------
     gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
-    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh abfs --imaging --compare lcl us
     gcp2git.sh --generate-env-file
-    gcp2git.sh --tl --rating --download-pg gtjn
-    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+    gcp2git.sh --tl --rating --download int gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update lcl pg
+    gcp2git.sh --tracking --scac gtjn --update pg gh
 
 Notes:
 ------
@@ -316,7 +316,7 @@ if [ -e ".env_gcp2git" ]; then
     fi
 fi
 
-while [ "$1" != "" ]; do
+while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
     case "$1" in
         -v | --version)
             echo "gcp2git version: $version"
@@ -378,25 +378,25 @@ while [ "$1" != "" ]; do
             ;;
         --compare)
             flg_compare_from_to_env=true
-            compare_dir_1="${2}"
-            compare_dir_2="${3}"
-            shift 3 # Shift by three positions to consume the flag and its two arguments
+            compare_env_1="${2}"
+            compare_env_2="${3}"
+            shift 2 # plus 1 after case block
             ;;
         --download)
             flg_download_from_env=true
             download_env="${2}"
-            shift 2 # Shift by two positions to consume the flag and its argument
+            shift 1
             ;;
         --update)
             flg_update_from_to_env=true
             update_from_env="${2}"
             update_to_env="${3}"
-            shift 3 # Shift by three positions to consume the flag and its two arguments
+            shift 2 # plus 1 after case block
             ;;
         --update-lcl-pg-gh)
             flg_update_lcl_pg_gh_from_env=true
             update_from_env="${2}"
-            shift 2 # Shift by two positions to consume the flag and its argument
+            shift 1 # plus 1 after case block
             ;;
         --ltl)
             mode="LTL"
@@ -424,11 +424,13 @@ while [ "$1" != "" ]; do
             ;;
         --scac)
             carrier="${2^^}"
+            shift 2 # plus 1 after case block
             ;;
         *)
             carrier="${1^^}"
             ;;
     esac
+    # Since this default shift exists, all flag handling shifts are decreased by 1
     shift
 done
 
@@ -440,6 +442,7 @@ local_sandbox_folder="./downloaded_sandbox_${mode}_${interaction}_${service}_${c
 local_eu_prod_folder="./downloaded_eu_prod_${mode}_${interaction}_${service}_${carrier}"
 local_us_prod_folder="./downloaded_us_prod_${mode}_${interaction}_${service}_${carrier}"
 
+# Set full gcp urls
 gcp_playground_upload_url="$gcp_pg_base_url/$mode/$service/$interaction"
 gcp_playground_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
 gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
@@ -528,9 +531,6 @@ install_script() {
     echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
     echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
     echo "Info: Paths added to '~/.bashrc'."
-    # Export path and refresh source
-    #export PATH=$PATH:~/gcp2git/main
-    #source ~/gcp2git/util/gcp2git_autocomplete.sh
     # Print success message
     echo "Info: Success. Script installed in '~/gcp2git/' folder."
     # If '--install-y' was used, set up gcloud auth
@@ -550,17 +550,7 @@ install_script() {
         echo "Info: Use 'gcloud auth list' to check if you are logged in."
         echo "Info: Use '--help-gcloud-cli' for more info."
     fi
-    #echo "Info: Log in again to apply changes."
-    #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
     echo "Info: Run 'source ~/.bashrc' to apply changes in current session."
-    # echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
-    # read run_reload
-    # if [ "${run_reload,,}" == "y" ]; then
-        # exec bash
-        # #echo "Info: Reloaded session."
-    # else
-        # echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
-    # fi
     echo "Info: Local file './gcp2git.sh' is no longer needed."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
@@ -737,7 +727,7 @@ autocomplete() {
 
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
     options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
-    options+="--update-gitignore-file --compare --download --update --update-all "
+    options+="--update-gitignore-file --compare --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
     # Check if --compare is present in the command line arguments
@@ -750,13 +740,15 @@ autocomplete() {
         local second_param=("lcl" "pg" "gh")
 
         case "\${COMP_WORDS[\${#COMP_WORDS[@]}-2]}" in
-            *lcl*|*pg*|*int*|*us*)
+            *lcl*|*pg*|*int*|*stg*|*sbx*|*eu*|*us*)
                 COMPREPLY=(\$(compgen -W "\${second_param[*]}" -- "\${cur}"))
                 ;;
             *)
                 COMPREPLY=(\$(compgen -W "\${first_param[*]}" -- "\${cur}"))
                 ;;
         esac
+    elif [[ "\${COMP_WORDS[@]} " =~ " --update-lcl-pg-gh " ]]; then
+            COMPREPLY=("int" "stg" "sbx" "eu" "us")
     else
         COMPREPLY=(\$(compgen -W "\$options" -- "\${cur}"))
     fi
@@ -935,12 +927,17 @@ check_installation() {
 # $1 - required number of args
 # $2 - all passed args
 check_args() {
+        local parent_func="${FUNCNAME[1]}"
         local required_number_of_args=$1
         shift;
         local total_number_of_args=$#
         local args=$@
+        if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
+            echo "Error: No arguments provided!"
+            exit 1
+        fi
         if [ $total_number_of_args -ne $required_number_of_args ]; then
-            echo "Error: Required $number_of_args arguments!"
+            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
             exit 1
         fi
         for arg in $args; do
@@ -1281,89 +1278,92 @@ commit_git() {
 
 
 # Compare files from two local/remote folders
+# $1 - first environment for comparison
+# $2 - second environment for comparison
 compare_envs() {
     # Check arg count and npe, assign values
     check_args 2 $@
-    local compare_dir_1=$1
-    local compare_dir_2=$2
+    local compare_env_1=$1
+    local compare_env_2=$2
     # Function logic
-    if [ "$compare_dir_1" == "$compare_dir_2" ]; then
-        echo "Error: Same value '$compare_dir_1' provided for source and target folder/environment!"
+    if [ "$compare_env_1" == "$compare_env_2" ]; then
+        echo "Error: Same value '$compare_env_1' provided for source and target folder/environment!"
         exit 1
     fi
-    if [ ! -d "$compare_dir_1" ]; then
-        case "$compare_dir_1" in
+    if [ ! -d "$compare_env_1" ]; then
+        case "$compare_env_1" in
             "lcl")
-                compare_dir_1="."
+                compare_env_1="."
                 ;;
             "pg")
-                compare_dir_1="$local_playground_folder"
+                compare_env_1="$local_playground_folder"
                 download_from_env "pg"
                 ;;
             "int")
-                compare_dir_1="$local_qa_int_folder"
+                compare_env_1="$local_qa_int_folder"
                 download_from_env "int"
                 ;;
             "stg")
-                compare_dir_1="$local_stage_folder"
+                compare_env_1="$local_stage_folder"
                 download_from_env "stg"
                 ;;
             "sbx")
-                compare_dir_1="$local_sandbox_folder"
+                compare_env_1="$local_sandbox_folder"
                 download_from_env "sbx"
                 ;;
             "eu")
-                compare_dir_1="$local_eu_prod_folder"
+                compare_env_1="$local_eu_prod_folder"
                 download_from_env "eu"
                 ;;
             "us")
-                compare_dir_1="$local_us_prod_folder"
+                compare_env_1="$local_us_prod_folder"
                 download_from_env "us"
                 ;;
             *)
-                compare_dir_1="."
+                compare_env_1="."
                 ;;
         esac
     fi
-    if [ ! -d "$compare_dir_2" ]; then
-        case "$compare_dir_2" in
+    if [ ! -d "$compare_env_2" ]; then
+        case "$compare_env_2" in
             "lcl")
-                compare_dir_1="."
+                compare_env_1="."
                 ;;
                "pg")
-                compare_dir_2="$local_playground_folder"
+                compare_env_2="$local_playground_folder"
                 download_from_env "pg"
                 ;;
             "int")
-                compare_dir_2="$local_qa_int_folder"
+                compare_env_2="$local_qa_int_folder"
                 download_from_env "int"
                 ;;
             "stg")
-                compare_dir_2="$local_stage_folder"
+                compare_env_2="$local_stage_folder"
                 download_from_env "stg"
                 ;;
             "sbx")
-                 compare_dir_2="$local_sandbox_folder"
+                 compare_env_2="$local_sandbox_folder"
                  download_from_env "sbx"
                  ;;
             "eu")
-                compare_dir_2="$local_eu_prod_folder"
+                compare_env_2="$local_eu_prod_folder"
                 download_from_env "eu"
                 ;;
             "us")
-                compare_dir_2="$local_us_prod_folder"
+                compare_env_2="$local_us_prod_folder"
                 download_from_env "us"
                 ;;
             *)
-                compare_dir_2="."
+                compare_env_2="."
                 ;;
         esac
     fi
-    echo "Info: Comparing folders '$compare_dir_1' and '$compare_dir_2'."
-    compare_files "$compare_dir_1" "$compare_dir_2"
+    echo "Info: Comparing folders '$compare_env_1' and '$compare_env_2'."
+    compare_files "$compare_env_1" "$compare_env_2"
 }
 
 # Download from any env
+# $1 - source environment to download from
 download_from_env() {
     # Check arg count and npe, assign values
     check_args 1 $@
@@ -1485,7 +1485,9 @@ download_from_env() {
     esac
 }
 
-# Update local files from GCP playground
+# Update files from/to environment
+# $1 - source environment to copy files from
+# $2 - target environment to update files
 update_from_to_env() {
     # Check arg count and npe, assign values
     check_args 2 $@
@@ -1550,6 +1552,7 @@ update_from_to_env() {
 }
 
 # Update local, playground and GitHub files from given environment
+# $1 - source environment to copy files from 
 update_lcl_pg_gh_from_env() {
     # Check arg count and npe, assign values
     check_args 1 $@
