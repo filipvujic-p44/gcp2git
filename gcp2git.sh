@@ -59,52 +59,52 @@ Options:
 Options (details):
 ------------------
     general:
-        -v | --version                Display script version and author.
-        -h | --help                   Display help and usage info.
-        --help-usage                  Display usage info.
-        --help-gcloud-cli             Display GCloud CLI help.
-        --install                     Install script to use from anywhere in terminal.
-        --install-y                   Install with preapproved dependencies and run 'gcloud auth login' after installation.
-        --uninstall                   Remove changes made during install (except dependencies).
-        --chk-install                 Check if script and dependencies are installed correctly.
-        --chk-for-updates             Check for new script versions.
-        --auto-chk-for-updates-off    Turn off automatic check for updates (default state).
-        --auto-chk-for-updates-on     Turn on automatic check for updates (checks on every run).
-        --generate-env-file           Generate '.env_gcp2git' in current folder.
-        --update-gitignore-file       Update '.gitignore' file.
+        -v | --version                    Display script version and author.
+        -h | --help                       Display help and usage info.
+        --help-usage                      Display usage info.
+        --help-gcloud-cli                 Display GCloud CLI help.
+        --install                         Install script to use from anywhere in terminal.
+        --install-y                       Install with preapproved dependencies and run 'gcloud auth login' after installation.
+        --uninstall                       Remove changes made during install (except dependencies).
+        --chk-install                     Check if script and dependencies are installed correctly.
+        --chk-for-updates                 Check for new script versions.
+        --auto-chk-for-updates-off        Turn off automatic check for updates (default state).
+        --auto-chk-for-updates-on         Turn on automatic check for updates (checks on every run).
+        --generate-env-file               Generate '.env_gcp2git' in current folder.
+        --update-gitignore-file           Update '.gitignore' file.
 
     actions:
-        --compare                     Compare files from any two local/remote folders.
-        --download                    Download remote gcp files.
-        --update                      Update files from-to environment.
-        --update-lcl-pg-gh            Update local, playground and GitHub files from given environment.
+        --compare <env_1> <env_2>         Compare files from any two local/remote folders.
+        --download <env>                  Download remote gcp files.
+        --update <env_from> <env_to>      Update files from-to environment.
+        --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
 
-    environment shortcuts:
-        lcl                           Current local folder.
-        gh                            Current GitHub repo.
-        pg                            GCP playground.
-        int                           GCP qa-integration.
-        stg                           GCP qa-stage.
-        sbx                           GCP sandbox.
-        eu                            GCP eu-production.
-        us                            GCP us-production.
+    environment options:
+        lcl                               Current local folder.
+        gh                                Current GitHub repo.
+        pg                                GCP playground.
+        int                               GCP qa-integration.
+        stg                               GCP qa-stage.
+        sbx                               GCP sandbox.
+        eu                                GCP eu-production.
+        us                                GCP us-production.
 
     transportation-modes:
-        --ltl                         Set mode to 'LTL' (default value).
-        --tl                          Set mode to 'TL'.
+        --ltl                             Set mode to 'LTL' (default value).
+        --tl                              Set mode to 'TL'.
         
     interaction-types:
-        --carrier-push                Set interaction to 'CARRIER_PUSH'.
-        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
+        --carrier-push                    Set interaction to 'CARRIER_PUSH'.
+        --carrier-pull                    Set interaction to 'CARRIER_PULL' (default value).
 
     service-types:
-        --rating                      Set service to 'RATING'.
-        --dispatch                    Set service to 'DISPATCH'.
-        --tracking                    Set service to 'SHIPMENT_STATUS'.
-        --imaging                     Set service to 'IMAGING'.
+        --rating                          Set service to 'RATING'.
+        --dispatch                        Set service to 'DISPATCH'.
+        --tracking                        Set service to 'SHIPMENT_STATUS'.
+        --imaging                         Set service to 'IMAGING'.
 
     carrier:
-        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
+        --scac <carrier_scac>             Set carrier scac (case insensitive; can be set without using '--scac' flag).
 
 Usage:
 ------
@@ -132,37 +132,20 @@ USAGE HELP:
 Options:
 --------
     actions:
-        --compare                     Compare files from any two local/remote folders. 
-        --download                    Download remote gcp files.
-        --update                      Update files from-to environment.
-        --update-lcl-pg-gh            Update local, playground and GitHub files from given environment.
+        --compare <env_1> <env_2>         Compare files from any two local/remote folders.
+        --download <env>                  Download remote gcp files.
+        --update <env_from> <env_to>      Update files from-to environment.
+        --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
 
-    environment shortcuts:
-        lcl                           Current local folder.
-        gh                            Current GitHub repo.
-        pg                            GCP playground.
-        int                           GCP qa-integration.
-        stg                           GCP qa-stage.
-        sbx                           GCP sandbox.
-        eu                            GCP eu-production.
-        us                            GCP us-production.
-
-    transportation-modes:
-        --ltl                         Set mode to 'LTL' (default value).
-        --tl                          Set mode to 'TL'.
-        
-    interaction-types:
-        --carrier-push                Set interaction to 'CARRIER_PUSH'.
-        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
-
-    service-types:
-        --rating                      Set service to 'RATING'.
-        --dispatch                    Set service to 'DISPATCH'.
-        --tracking                    Set service to 'SHIPMENT_STATUS'.
-        --imaging                     Set service to 'IMAGING'.
-
-    carrier:
-        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
+    environment options:
+        lcl                               Current local folder.
+        gh                                Current GitHub repo.
+        pg                                GCP playground.
+        int                               GCP qa-integration.
+        stg                               GCP qa-stage.
+        sbx                               GCP sandbox.
+        eu                                GCP eu-production.
+        us                                GCP us-production.
 
 Usage:
 ------
