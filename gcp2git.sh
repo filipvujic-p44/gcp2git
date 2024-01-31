@@ -74,8 +74,8 @@ Options (details):
         --update-gitignore-file           Update '.gitignore' file.
 
     actions:
-        --compare <env_1> <env_2>         Compare files from any two local/remote folders.
-        --download <env>                  Download remote gcp files.
+        --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --download <env>                  Download remote GCP files.
         --update <env_from> <env_to>      Update files from-to environment.
         --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
 
@@ -132,8 +132,8 @@ USAGE HELP:
 Options:
 --------
     actions:
-        --compare <env_1> <env_2>         Compare files from any two local/remote folders.
-        --download <env>                  Download remote gcp files.
+        --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --download <env>                  Download remote GCP files.
         --update <env_from> <env_to>      Update files from-to environment.
         --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
 
@@ -229,10 +229,10 @@ gcp_sandbox_base_url="gs://p44-sandbox-us-data-feed-plan-definitions/sandbox/src
 gcp_eu_prod_base_url="gs://p44-production-eu-data-feed-plan-definitions/production-eu/src"
 gcp_us_prod_base_url="gs://data-feed-plan-definitions-prod-prod-us-central1-582378/production/src"
 
-mode="LTL"
-interaction="CARRIER_PULL"
-service=""
-carrier=""
+glb_mode="LTL"
+glb_interaction="CARRIER_PULL"
+glb_service=""
+glb_carrier=""
 
 # Check if any args are passed to the script
 if [ ! -z "$1" ]; then
@@ -273,29 +273,29 @@ if [ -e ".env_gcp2git" ]; then
 
     # Load us prod base URL value
     if [ ! -z "$US_PROD_BASE_URL" ]; then
-        us_prod_url="$US_PROD_BASE_URL"
+        us_prod_base_url="$US_PROD_BASE_URL"
     fi
 
     # Set integration details from .env
 
     # Load mode value
     if [ ! -z "$MODE" ]; then
-        mode="$MODE"
+        glb_mode="$MODE"
     fi
 
     # Load interaction value
     if [ ! -z "$INTERACTION" ]; then
-        interaction="$INTERACTION"
+        glb_interaction="$INTERACTION"
     fi
 
     # Load service value
     if [ ! -z "$SERVICE" ]; then
-        service="$SERVICE"
+        glb_service="$SERVICE"
     fi
 
     # Load carrier value
     if [ ! -z "$SCAC" ]; then
-        carrier="$SCAC"
+        glb_carrier="$SCAC"
     fi
 fi
 
@@ -361,19 +361,19 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --compare)
             flg_compare_from_to_env=true
-            compare_env_1="${2}"
-            compare_env_2="${3}"
+            glb_compare_env_1="${2}"
+            glb_compare_env_2="${3}"
             shift 2 # plus 1 after case block
             ;;
         --download)
             flg_download_from_env=true
-            download_env="${2}"
+            glb_download_env="${2}"
             shift 1
             ;;
         --update)
             flg_update_from_to_env=true
-            update_from_env="${2}"
-            update_to_env="${3}"
+            glb_update_from_env="${2}"
+            glb_update_to_env="${3}"
             shift 2 # plus 1 after case block
             ;;
         --update-lcl-pg-gh)
@@ -382,57 +382,40 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             shift 1 # plus 1 after case block
             ;;
         --ltl)
-            mode="LTL"
+            glb_mode="LTL"
             ;;
         --tl)
-            mode="TL"
+            glb_mode="TL"
             ;;
         --carrier-push)
-            interaction="CARRIER_PUSH"
+            glb_interaction="CARRIER_PUSH"
             ;;
         --carrier-pull)
             interaction="CARRIER_PULL"
             ;;
         --rating)
-            service="RATING"
+            glb_service="RATING"
             ;;
         --dispatch)
-            service="DISPATCH"
+            glb_service="DISPATCH"
             ;;
         --tracking)
-            service="SHIPMENT_STATUS"
+            glb_service="SHIPMENT_STATUS"
             ;;
         --imaging)
-            service="IMAGING"
+            glb_service="IMAGING"
             ;;
         --scac)
-            carrier="${2^^}"
+            glb_carrier="${2^^}"
             shift 2 # plus 1 after case block
             ;;
         *)
-            carrier="${1^^}"
+            glb_carrier="${1^^}"
             ;;
     esac
     # Since this default shift exists, all flag handling shifts are decreased by 1
     shift
 done
-
-# Set local folder paths
-local_playground_folder="./downloaded_playground_${mode}_${interaction}_${service}_${carrier}"
-local_qa_int_folder="./downloaded_qa_int_${mode}_${interaction}_${service}_${carrier}"
-local_qa_stage_folder="./downloaded_qa_stage_${mode}_${interaction}_${service}_${carrier}"
-local_sandbox_folder="./downloaded_sandbox_${mode}_${interaction}_${service}_${carrier}"
-local_eu_prod_folder="./downloaded_eu_prod_${mode}_${interaction}_${service}_${carrier}"
-local_us_prod_folder="./downloaded_us_prod_${mode}_${interaction}_${service}_${carrier}"
-
-# Set full gcp urls
-gcp_playground_upload_url="$gcp_pg_base_url/$mode/$service/$interaction"
-gcp_playground_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
-gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
-gcp_qa_stage_full_url="$gcp_qa_stage_base_url/$mode/$service/$interaction/$carrier"
-gcp_sandbox_full_url="$gcp_sandbox_base_url/$mode/$service/$interaction/$carrier"
-gcp_eu_prod_full_url="$gcp_eu_prod_base_url/$mode/$service/$interaction/$carrier"
-gcp_us_prod_full_url="$gcp_us_prod_base_url/$mode/$service/$interaction/$carrier"
 
 
 
@@ -713,15 +696,17 @@ autocomplete() {
     options+="--update-gitignore-file --compare --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
-    # Check if --compare is present in the command line arguments
     if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
-        COMPREPLY=("lcl" "pg" "int" "stg" "sbx" "eu" "us" \$(compgen -o plusdirs -o nospace -W "\$(_filedir)" -- "\${cur}"))
+        local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
+        local folder_options=\$(compgen -o plusdirs -- "\${cur}")
+        local combined_options=("\${env_options[@]}" "\${folder_options[@]}")
+        COMPREPLY=(\$(compgen -W "\${combined_options[*]}" -- "\${cur}"))
     elif [[ "\${COMP_WORDS[@]} " =~ " --download " ]]; then
-            COMPREPLY=("pg" "int" "stg" "sbx" "eu" "us")
+        local env_options=("pg" "int" "stg" "sbx" "eu" "us")
+        COMPREPLY=(\$(compgen -W "\${env_options[*]}" -- "\${cur}"))
     elif [[ "\${COMP_WORDS[@]} " =~ " --update " ]]; then
         local first_param=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
         local second_param=("lcl" "pg" "gh")
-
         case "\${COMP_WORDS[\${#COMP_WORDS[@]}-2]}" in
             *lcl*|*pg*|*int*|*stg*|*sbx*|*eu*|*us*)
                 COMPREPLY=(\$(compgen -W "\${second_param[*]}" -- "\${cur}"))
@@ -970,7 +955,7 @@ check_git_repo_requirements() {
 
 # Check if carrier scac is provided
 check_carrier_set() {
-    if [ -z "$carrier" ]; then
+    if [ -z "$glb_carrier" ]; then
         return 1
     fi
     return 0
@@ -978,7 +963,7 @@ check_carrier_set() {
 
 # Check if service name is provided
 check_service_set() {
-    if [ -z "$service" ]; then
+    if [ -z "$glb_service" ]; then
         return 1
     fi
     return 0
@@ -1028,8 +1013,145 @@ check_action_requirements() {
 
 
 
+# Return corresponding GCP base url based on passed environment name
+# $1 - environment name
+build_local_folder_name_from_env() {
+    local env_name=$1
+    case "$env_name" in
+            "lcl" | "." | "./")
+                echo "."
+                ;;
+            "pg")
+                echo "./downloaded_playground_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+                ;;
+            "int")
+                echo "./downloaded_qa_int_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+                ;;
+            "stg")
+                echo "./downloaded_qa_stage_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+                ;;
+            "sbx")
+                echo "./downloaded_sandbox_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}" 
+                ;;
+            "eu")
+                echo "./downloaded_eu_prod_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+                ;;
+            "us")
+                echo "./downloaded_us_prod_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+                ;;
+            *)
+                echo "Error: GCP environment '$env_name' not recognized!"
+                exit 1
+                ;;
+        esac
+}
+
+# Check if files have already been downloaded from passed environment in this runtime
+# $1 - environment name
+check_is_downloaded_from_env() {
+    local $env_name=$1
+    case "$env_name" in
+            "pg")
+                echo "$flg_fresh_gcp_pg_download"
+                ;;
+            "int")
+                echo "$flg_fresh_gcp_qa_int_download"
+                ;;
+            "stg")
+                echo "$flg_fresh_gcp_qa_stage_download"
+                ;;
+            "sbx")
+                echo "$flg_fresh_gcp_sandbox_download"
+                ;;
+            "eu")
+                echo "$flg_fresh_gcp_eu_prod_download"
+                ;;
+            "us")
+                echo "$flg_fresh_gcp_us_prod_download"
+                ;;
+            *)
+                echo "Error: GCP environment '$env_name' not recognized!"
+                exit 1
+                ;;
+        esac
+}
+
+# Return corresponding GCP base url based on passed environment name
+# $1 - environment name
+resolve_env_to_gcp_base_url() {
+    local $env_name=$1
+    case "$env_name" in
+            "pg")
+                echo "$gcp_pg_base_url"
+                ;;
+            "int")
+                echo "$gcp_qa_int_base_url"
+                ;;
+            "stg")
+                echo "$gcp_qa_stage_base_url" 
+                ;;
+            "sbx")
+                echo "$gcp_sandbox_base_url" 
+                ;;
+            "eu")
+                echo "$gcp_eu_prod_base_url" 
+                ;;
+            "us")
+                echo "$gcp_us_prod_base_url" 
+                ;;
+            *)
+                echo "Error: GCP environment '$env_name' not recognized!"
+                exit 1
+                ;;
+        esac
+}
+
+# Build GCP url from passed values.
+# $1 - base GCP bucket url
+# $2 - mode
+# $3 - service
+# $4 - interaction
+# $5 - carrier
+build_full_gcp_url() {
+    # Check arg count and npe, assign values
+    check_args 5 $@
+    local base_gcp_url=$1
+    local mode=$2
+    local service=$3
+    local interaction=$4
+    local carrier=$5
+    # Function logic
+    local full_url=""
+    if [ "$carrier" == "*" ]; then
+        full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
+    else
+        full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
+    fi
+    flg_downloaded_playground=true
+    echo "$full_url"
+}
+
+# Download files into specified folder from given url
+# $1 - source full GCP url
+# $2 - target local folder
+download_from_url() {
+    # Check arg count and npe, assign values
+    check_args 2 $@
+    local gcp_full_url=$1
+    local local_folder=$2
+    # Function logic
+    echo "Info: Downloading GCP playground files."
+    if [ -d "$local_folder" ]; then
+        rm -r "$local_folder"
+        mkdir "$local_folder"
+    else
+        mkdir "$local_folder"
+    fi
+    download_from_gcp "$gcp_full_url" "$local_folder"
+}
+
 # Downloads files from GCP.
-# $1 - gcp url (environment)
+# $1 - GCP url (environment)
 # $2 - local target folder
 download_from_gcp() {
     # Check arg count and npe, assign values
@@ -1042,7 +1164,7 @@ download_from_gcp() {
 
 # Uploads files to GCP.
 # $1 - local file name
-# $2 - gcp url (environment)
+# $2 - GCP url (environment)
 upload_file_to_gcp() {
     # Check arg count and npe, assign values
     check_args 2 $@
@@ -1065,6 +1187,7 @@ compare_files() {
     local source_folder=$1
     local target_folder=$2
     # Function logic
+    echo "Info: Comparing folders '$source_folder' and '$target_folder'."
     local diffCount=0;
     for source_file in "$source_folder"/*; do
         # Check if it's a file
@@ -1156,7 +1279,7 @@ update_local_from_source() {
     local destination_folder="."
     # Function logic
     echo "Info: Updating files in '$destination_folder' using '$source_folder' files."
-    update_file_content $source_folder $destination_folder
+    update_file_content "$source_folder" "$destination_folder"
 }
 
 # Uploads files to GCP playground.
@@ -1166,22 +1289,22 @@ upload_to_pg() {
     check_args 1 $@
     local source_folder=$1
     # Function logic
-    local tmp_dir="./tmp_$carrier"
+    local tmp_dir="./tmp_$glb_carrier"
     if [ -d "$tmp_dir" ]; then
         rm -rf "$tmp_dir"
     fi
     mkdir "$tmp_dir"
-    mkdir "$tmp_dir/$carrier"
+    mkdir "$tmp_dir/$glb_carrier"
     for source_file in "$source_folder"/*; do
         if [ -f "$source_file" ]; then
             filename=$(basename "$source_file")
             if check_file_prefix "$filename"; then
-                cp "$filename" "$tmp_dir/$carrier/"
+                cp "$filename" "$tmp_dir/$glb_carrier/"
                 echo "Info: Processing $filename for upload."
             fi
         fi
     done
-    upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_playground_upload_url"
+    upload_file_to_gcp "$tmp_dir/$glb_carrier" "$gcp_playground_upload_url"
     echo "Info: Uploaded files to GCP playground"
     rm -rf "$tmp_dir"
 }
@@ -1266,83 +1389,30 @@ commit_git() {
 compare_envs() {
     # Check arg count and npe, assign values
     check_args 2 $@
-    local compare_env_1=$1
-    local compare_env_2=$2
+    local env_1=$1
+    local env_2=$2
     # Function logic
-    if [ "$compare_env_1" == "$compare_env_2" ]; then
-        echo "Error: Same value '$compare_env_1' provided for source and target folder/environment!"
+    if [ "$env_1" == "$env_2" ]; then
+        echo "Error: Same value '$env_1' provided for source and target folder/environment!"
         exit 1
     fi
-    if [ ! -d "$compare_env_1" ]; then
-        case "$compare_env_1" in
-            "lcl")
-                compare_env_1="."
-                ;;
-            "pg")
-                compare_env_1="$local_playground_folder"
-                download_from_env "pg"
-                ;;
-            "int")
-                compare_env_1="$local_qa_int_folder"
-                download_from_env "int"
-                ;;
-            "stg")
-                compare_env_1="$local_stage_folder"
-                download_from_env "stg"
-                ;;
-            "sbx")
-                compare_env_1="$local_sandbox_folder"
-                download_from_env "sbx"
-                ;;
-            "eu")
-                compare_env_1="$local_eu_prod_folder"
-                download_from_env "eu"
-                ;;
-            "us")
-                compare_env_1="$local_us_prod_folder"
-                download_from_env "us"
-                ;;
-            *)
-                compare_env_1="."
-                ;;
-        esac
+    if [ ! -d "$env_1" ]; then
+        local local_folder_1=$(build_local_folder_name_from_env "$env_1")
+        if [ "$local_folder_1" != "." ]; then
+            download_from_env "$env_1"
+        fi
+    else
+        local_folder_1="$env_1"
     fi
-    if [ ! -d "$compare_env_2" ]; then
-        case "$compare_env_2" in
-            "lcl")
-                compare_env_1="."
-                ;;
-               "pg")
-                compare_env_2="$local_playground_folder"
-                download_from_env "pg"
-                ;;
-            "int")
-                compare_env_2="$local_qa_int_folder"
-                download_from_env "int"
-                ;;
-            "stg")
-                compare_env_2="$local_stage_folder"
-                download_from_env "stg"
-                ;;
-            "sbx")
-                 compare_env_2="$local_sandbox_folder"
-                 download_from_env "sbx"
-                 ;;
-            "eu")
-                compare_env_2="$local_eu_prod_folder"
-                download_from_env "eu"
-                ;;
-            "us")
-                compare_env_2="$local_us_prod_folder"
-                download_from_env "us"
-                ;;
-            *)
-                compare_env_2="."
-                ;;
-        esac
+    if [ ! -d "$env_2" ]; then
+        local local_folder_2=$(build_local_folder_name_from_env "$env_2")
+        if [ "$local_folder_2" != "." ]; then
+            download_from_env "$env_2"
+        fi
+    else
+        local_folder_2="$env_2"
     fi
-    echo "Info: Comparing folders '$compare_env_1' and '$compare_env_2'."
-    compare_files "$compare_env_1" "$compare_env_2"
+    compare_files "$local_folder_1" "$local_folder_2"
 }
 
 # Download from any env
@@ -1350,122 +1420,15 @@ compare_envs() {
 download_from_env() {
     # Check arg count and npe, assign values
     check_args 1 $@
-    local download_env=$1
+    local env_name=$1
     # Function logic
-    case "$download_env" in
-        "pg")
-            if [ "$flg_downloaded_playground" == "true" ]; then
-                break
-               fi
-            echo "Info: Downloading GCP playground files."
-            if [ -d "$local_playground_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
-                rm -r "$local_playground_folder"
-                mkdir "$local_playground_folder"
-            else
-                mkdir "$local_playground_folder"
-            fi
-            if [ "$carrier" == "*" ]; then
-                   download_from_gcp "$gcp_playground_full_url" "$local_playground_folder"
-               else
-                   download_from_gcp "$gcp_playground_full_url/*" "$local_playground_folder"
-               fi
-               flg_downloaded_playground=true
-            ;;
-        "int")
-            if [ "$flg_downloaded_qa_int" == "true" ]; then
-                break
-               fi
-            echo "Info: Downloading GCP qa-int files."
-              if [ -d "$local_qa_int_folder" ] && [ "$flg_fresh_gcp_qa_int_download" != "true" ]; then
-                  rm -r "$local_qa_int_folder"
-                  mkdir "$local_qa_int_folder"
-              else
-                  mkdir "$local_qa_int_folder"
-              fi
-              if [ "$carrier" == "*" ]; then
-                     download_from_gcp "$gcp_qa_int_full_url" "$local_qa_int_folder"
-                 else
-                     download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
-                 fi
-                 flg_downloaded_qa_int=true
-            ;;
-        "stg")
-               if [ "$flg_downloaded_qa_stage" == "true" ]; then
-                   break
-                  fi
-            echo "Info: Downloading GCP qa-stage files."
-               if [ -d "$local_qa_stage_folder" ] && [ "$flg_fresh_gcp_qa_stage_download" != "true" ]; then
-                   rm -r "$local_qa_stage_folder"
-                   mkdir "$local_qa_stage_folder"
-               else
-                   mkdir "$local_qa_stage_folder"
-               fi
-               if [ "$carrier" == "*" ]; then
-                      download_from_gcp "$gcp_qa_stage_full_url" "$local_qa_stage_folder"
-                  else
-                      download_from_gcp "$gcp_qa_stage_full_url/*" "$local_qa_stage_folder"
-                  fi
-                  flg_downloaded_qa_stage=true
-            ;;
-        "sbx")
-            if [ "$flg_downloaded_sandbox" == "true" ]; then
-                   break
-                  fi
-            echo "Info: Downloading GCP sandbox files."
-               if [ -d "$local_sandbox_folder" ] && [ "$flg_fresh_gcp_sandbox_download" != "true" ]; then
-                   rm -r "$local_sandbox_folder"
-                   mkdir "$local_sandbox_folder"
-               else
-                   mkdir "$local_sandbox_folder"
-               fi
-               if [ "$carrier" == "*" ]; then
-                      download_from_gcp "$gcp_sandbox_full_url" "$local_sandbox_folder"
-                  else
-                      download_from_gcp "$gcp_sandbox_full_url/*" "$local_sandbox_folder"
-                  fi
-                  flg_downloaded_sandbox=true
-            ;;
-        "eu")
-            if [ "$flg_downloaded_eu_prod" == "true" ]; then
-                       break
-               fi
-            echo "Info: Downloading GCP eu-prod files."
-               if [ -d "$local_eu_prod_folder" ] && [ "$flg_fresh_gcp_eu_prod_download" != "true" ]; then
-                   rm -r "$local_eu_prod_folder"
-                   mkdir "$local_eu_prod_folder"
-               else
-                   mkdir "$local_eu_prod_folder"
-               fi
-               if [ "$carrier" == "*" ]; then
-                      download_from_gcp "$gcp_eu_prod_full_url" "$local_eu_prod_folder"
-                  else
-                      download_from_gcp "$gcp_eu_prod_full_url/*" "$local_eu_prod_folder"
-                  fi
-                  flg_downloaded_eu_prod=true
-            ;;
-        "us")
-            if [ "$flg_downloaded_us_prod" == "true" ]; then
-                      break
-               fi
-            echo "Info: Downloading GCP us-prod files."
-              if [ -d "$local_us_prod_folder" ] && [ "$flg_fresh_gcp_us_prod_download" != "true" ]; then
-                  rm -r "$local_us_prod_folder"
-                  mkdir "$local_us_prod_folder"
-              else
-                  mkdir "$local_us_prod_folder"
-              fi
-              if [ "$carrier" == "*" ]; then
-                     download_from_gcp "$gcp_us_prod_full_url" "$local_us_prod_folder"
-                 else
-                     download_from_gcp "$gcp_us_prod_full_url/*" "$local_us_prod_folder"
-                 fi
-                 flg_downloaded_us_prod=true
-            ;;
-        *)
-            echo "Error: Environment '$download_env' not found!"
-            exit 1
-            ;;
-    esac
+    local download_freshness=$(check_is_downloaded_from_env "$env_name")
+    if [ "$download_freshness" != "true" ]; then
+        local local_folder=$(build_local_folder_name_from_env "$env_name")
+        local base_url=$(resolve_env_to_gcp_base_url "$env_name")
+        local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
+        download_from_url "$full_url" "$local_folder"
+    fi
 }
 
 # Update files from/to environment
@@ -1482,56 +1445,27 @@ update_from_to_env() {
         echo "Error: Same value '$update_from_env' provided for source and target environment!"
         exit 1
     fi
-    case "$update_from_env" in
-            "lcl")
-                from_folder="."
-                ;;
-            "pg")
-                download_from_env "pg"
-                from_folder="$local_playground_folder"
-                ;;
-            "int")
-                download_from_env "ing"
-                from_folder="$local_qa_int_folder"
-                ;;
-            "stg")
-                download_from_env "stg"
-                from_folder="$local_stage_folder"
-                ;;
-            "sbx")
-                download_from_env "sbx"
-                from_folder="$local_sandbox_folder"
-                ;;
-            "eu")
-                download_from_env "eu"
-                from_folder="$local_eu_prod_folder"
-                ;;
-            "us")
-                download_from_env "us"
-                from_folder="$local_us_prod_folder"
-                ;;
-            *)
-                echo "Error: Update from environment '$update_from_env' not supported!"
-                exit 1
-                ;;
-        esac
-        case "$update_to_env" in
-               "lcl")
-                update_local_from_source "$from_folder"
-                ;;
-            "pg")
-                upload_to_pg "$from_folder"
-                ;;
-            "gh")
-                update_local_from_source "$from_folder"
-                update_gitignore
-                   commit_git
-                ;;
-            *)
-                echo "Error: Update to environment '$update_to_env' not supported!"
-                   exit 1
-                ;;
-        esac
+    from_folder=$(build_local_folder_name_from_env "$update_from_env")
+    if [ "$from_folder" != "." ]; then
+        download_from_env "$update_from_env"
+    fi
+    case "$update_to_env" in
+        "lcl")
+            update_local_from_source "$from_folder"
+            ;;
+        "pg")
+            upload_to_pg "$from_folder"
+            ;;
+        "gh")
+            update_local_from_source "$from_folder"
+            update_gitignore
+            commit_git
+            ;;
+        *)
+            echo "Error: Update to environment '$update_to_env' not supported!"
+            exit 1
+            ;;
+    esac
 }
 
 # Update local, playground and GitHub files from given environment
@@ -1542,32 +1476,10 @@ update_lcl_pg_gh_from_env() {
     local update_from_env=$1
     local from_folder=""
     # Function logic
-    case "$update_from_env" in
-        "int")
-            download_from_env "ing"
-            from_folder="$local_qa_int_folder"
-            ;;
-        "stg")
-            download_from_env "stg"
-            from_folder="$local_stage_folder"
-            ;;
-        "sbx")
-            download_from_env "sbx"
-            from_folder="$local_sandbox_folder"
-            ;;
-        "eu")
-            download_from_env "eu"
-            from_folder="$local_eu_prod_folder"
-            ;;
-        "us")
-            download_from_env "us"
-            from_folder="$local_us_prod_folder"
-            ;;
-        *)
-            echo "Error: Update from environment '$update_from_env' not supported!"
-            exit 1
-            ;;
-    esac
+    from_folder=$(build_local_folder_name_from_env "$update_from_env")
+    if [ "$from_folder" != "." ]; then
+        download_from_env "$update_from_env"
+    fi
     update_local_from_source "$from_folder"
     upload_to_pg "$from_folder"
     update_gitignore
@@ -1635,22 +1547,22 @@ fi
 
 # Compare environments
 if [ "$flg_compare_from_to_env" == "true" ]; then
-    compare_envs "$compare_env_1" "$compare_env_2"
+    compare_envs "$glb_compare_env_1" "$glb_compare_env_2"
 fi
 
 # Download from GCP env
 if [ "$flg_download_from_env" == "true" ]; then
-    download_from_env "$download_env"
+    download_from_env "$glb_download_env"
 fi
 
 # Update from/to env
 if [ "$flg_update_from_to_env" == "true" ]; then
-    update_from_to_env "$update_from_env" "$update_to_env"
+    update_from_to_env "$glb_update_from_env" "$glb_update_to_env"
 fi
 
 # Update local, GitHub and playground from env
 if [ "$flg_update_lcl_pg_gh_from_env" == "true" ]; then
-    update_lcl_pg_gh_from_env "$update_from_env"
+    update_lcl_pg_gh_from_env "$glb_update_from_env"
 fi
 
 
