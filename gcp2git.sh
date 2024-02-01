@@ -126,7 +126,7 @@ EOL
 
 # Modes text
 actions_and_envs_text=$(cat <<EOL
-ACTIONS AND ENVS HELP:
+ACTIONS AND ENVIRONMENTS HELP:
 -----------
 
 Options:
@@ -584,19 +584,13 @@ check_args() {
             echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
             exit 1
         fi
-        for arg in $args; do
-            if [ -z "$arg" ]; then
-                    echo "Error: Argument cannot be null or empty!"
-            exit 1
-            fi
-        done
 }
 
 # Checks if a file starts with any of the prefixes.
 # $1 - local file name
 check_file_prefix() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local filename=$1
     # Function logic
     local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
@@ -921,7 +915,7 @@ uninstall_script() {
 # $1 - remote version
 install_updates() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local remote_version=$1
     # Function logic
     update_url="https://github.com/$repo_owner/$repo_name/archive/refs/tags/v$remote_version.tar.gz"
@@ -1075,7 +1069,10 @@ build_local_folder_name_from_env() {
 # Return corresponding GCP base url based on passed environment name
 # $1 - environment name
 resolve_env_to_gcp_base_url() {
-    local $env_name=$1
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local env_name=$1
+    # Function logic
     case "$env_name" in
             "pg")
                 echo "$gcp_pg_base_url"
@@ -1110,7 +1107,7 @@ resolve_env_to_gcp_base_url() {
 # $5 - carrier
 build_full_gcp_url() {
     # Check arg count and npe, assign values
-    check_args 5 $@
+    check_args 5 "$@"
     local base_gcp_url=$1
     local mode=$2
     local service=$3
@@ -1120,6 +1117,8 @@ build_full_gcp_url() {
     local full_url=""
     if [ "$carrier" == "*" ]; then
         full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
+    elif [ -z "$carrier" ]; then
+        full_url="$base_gcp_url/$mode/$service/$interaction"
     else
         full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
     fi
@@ -1132,7 +1131,7 @@ build_full_gcp_url() {
 # $2 - target local folder
 download_from_url() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local gcp_full_url=$1
     local local_folder=$2
     # Function logic
@@ -1151,7 +1150,7 @@ download_from_url() {
 # $2 - local target folder
 download_from_gcp() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local gcp_url=$1
     local local_folder=$2
     # Function logic
@@ -1163,7 +1162,7 @@ download_from_gcp() {
 # $2 - GCP url (environment)
 upload_file_to_gcp() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local filename=$1
     local gcp_url=$2
     # Function logic
@@ -1179,7 +1178,7 @@ upload_file_to_gcp() {
 # $2 - target folder to search for files and check content
 compare_files() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local source_folder=$1
     local target_folder=$2
     # Function logic
@@ -1237,7 +1236,7 @@ compare_files() {
 # $2 - destination folder containing files that will get updated
 update_file_content() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local source_folder=$1
     local destination_folder=$2
     # Function logic
@@ -1270,7 +1269,7 @@ update_file_content() {
 # $1 - source folder with new files
 update_local_from_source() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local source_folder=$1
     local destination_folder="."
     # Function logic
@@ -1282,7 +1281,7 @@ update_local_from_source() {
 # $1 - source folder containing files to be uploaded
 upload_to_pg() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local source_folder=$1
     # Function logic
     local tmp_dir="./tmp_$glb_carrier"
@@ -1300,7 +1299,9 @@ upload_to_pg() {
             fi
         fi
     done
-    upload_file_to_gcp "$tmp_dir/$glb_carrier" "$gcp_playground_upload_url"
+    local gcp_pg_base_url=$(resolve_env_to_gcp_base_url "pg")
+    local gcp_pg_upload_url=$(build_full_gcp_url "$gcp_pg_base_url" "$glb_mode" "$glb_service" "$glb_interaction" "")
+    upload_file_to_gcp "$tmp_dir/$glb_carrier" "$gcp_pg_upload_url"
     echo "Info: Uploaded files to GCP playground"
     rm -rf "$tmp_dir"
 }
@@ -1384,7 +1385,7 @@ commit_git() {
 # $2 - second environment for comparison
 compare_envs() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local env_1=$1
     local env_2=$2
     # Function logic
@@ -1415,7 +1416,7 @@ compare_envs() {
 # $1 - source environment to download from
 download_from_env() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local env_name=$1
     # Requirement checks
     check_carrier_is_set
@@ -1435,7 +1436,7 @@ download_from_env() {
 # $2 - target environment to update files
 update_from_to_env() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local update_from_env=$1
     local update_to_env=$2
     local from_folder=""
@@ -1474,7 +1475,7 @@ update_from_to_env() {
 # $1 - source environment to copy files from 
 update_lcl_pg_gh_from_env() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local update_from_env=$1
     local from_folder=""
     # Requirement checks
