@@ -47,7 +47,7 @@ Installation:
 
 Options:
 --------
-    gcp2git.sh [-v | --version] [-h | --help] [--help-usage] [--help-gcloud-cli] 
+    gcp2git.sh [-v | --version] [-h | --help] [--help-actions-and-envs] [--help-gcloud-cli] 
                [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
                [--generate-env-file] [--update-gitignore-file] 
@@ -61,7 +61,7 @@ Options (details):
     general:
         -v | --version                    Display script version and author.
         -h | --help                       Display help and usage info.
-        --help-usage                      Display usage info.
+        --help-actions-and-envs           Display actions and environments info.
         --help-gcloud-cli                 Display GCloud CLI help.
         --install                         Install script to use from anywhere in terminal.
         --install-y                       Install with preapproved dependencies and run 'gcloud auth login' after installation.
@@ -125,8 +125,8 @@ EOL
 )
 
 # Modes text
-usage_text=$(cat <<EOL
-USAGE HELP:
+actions_and_envs_text=$(cat <<EOL
+ACTIONS AND ENVS HELP:
 -----------
 
 Options:
@@ -150,11 +150,11 @@ Options:
 Usage:
 ------
     gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
-    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh abfs --imaging --compare lcl us
     gcp2git.sh --generate-env-file
-    gcp2git.sh --tl --rating --download-pg gtjn
-    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+    gcp2git.sh --tl --rating --download int gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update lcl pg
+    gcp2git.sh --tracking --scac gtjn --update pg gh
 
 EOL
 )
@@ -312,8 +312,8 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             echo "$help_text"
             exit 0
             ;;
-        --help-usage)
-            echo "$usage_text"
+        --help-actions-and-envs)
+            echo "$actions_and_envs_text"
             exit 0
             ;;
         --help-gcloud-cli)
@@ -954,7 +954,7 @@ autocomplete() {
     _init_completion || return
 
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-    options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
+    options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall --chk-install --generate-env-file "
     options+="--update-gitignore-file --compare --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
 
