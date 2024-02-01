@@ -1,7 +1,7 @@
 #!/bin/bash
 version="v1.1.0"
 author="Filip Vujic"
-last_updated="30-Jan-2024"
+last_updated="01-Feb-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -420,7 +420,7 @@ done
 
 
 ################################################################################################
-###################################### Dependency check functions ##############################
+###################################### Check functions ##############################
 ################################################################################################
 
 
@@ -450,6 +450,268 @@ check_bash_completion_installed() {
         return 0
     fi
     return 1
+}
+
+# Check if there is a new release on gcp2git GitHub repo
+check_for_updates() {
+    # Local script version
+    local local_version=$(echo "$version" | sed 's/^v//')
+    # Latest release text
+    local latest_text=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest")
+    # Latest remote version
+    local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
+    # Check if versions are different
+    local version_result=$(
+        awk -v v1="$local_version" -v v2="$remote_version" '
+            BEGIN {
+                if (v1 == v2) {
+                    result = 0;
+                    exit;
+                }
+                split(v1, a, ".");
+                split(v2, b, ".");
+                for (i = 1; i <= length(a); i++) {
+                    if (a[i] < b[i]) {
+                        result = 1;
+                        exit;
+                    } else if (a[i] > b[i]) {
+                        result = 2;
+                        exit;
+                    }
+                }
+                result = 0;
+                exit;
+            }
+            END {
+                print result
+            }'
+    )   
+    if [ "$version_result" -eq 0 ]; then
+        echo "Info: You already have the latest script version ($version)."
+    elif [ "$version_result" -eq 1 ]; then
+        local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
+        echo "Info: New version available (v$remote_version). Your version is (v$local_version)."
+        echo "Info: Release notes:"
+        echo "$release_notes"
+        echo "Info: Visit '$repo/releases' for more info."
+        echo "Q: Do you want to download and install updates? (Y/n):"
+        read do_update
+        if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
+            install_updates "$remote_version"
+        else
+            echo "Info: Update canceled."
+        fi
+    elif [ "$version_result" -eq 2 ]; then
+        echo "Info: You somehow have a version that hasn't been released yet ;)"
+        echo "Info: Latest release is (v$remote_version). Your version is (v$local_version)."
+    fi
+}
+
+# Check if all necessary changes are done during installation
+check_installation() {
+    local cnt_missing=0
+    if check_wget_installed; then
+        echo "Info: wget ------------------- OK."
+    else
+        echo "Error: wget ------------------ NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_gcloud_installed; then
+        echo "Info: gcloud ----------------- OK."
+    else
+        echo "Error: gcloud ---------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_python_installed; then
+        echo "Info: python3 ---------------- OK."
+    else
+        echo "Error: python3 --------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_git_installed; then
+        echo "Info: git -------------------- OK."
+    else
+        echo "Error: git ------------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_bash_completion_installed; then
+        echo "Info: bash-completion -------- OK."
+    else
+        echo "Error: bash-completion ------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+        
+    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
+        echo "Info: ~/gcp2git/ ------------- OK."
+    else
+        echo "Error: ~/gcp2git/ ------------ NOT OK."
+        ((cnt_missing++))
+    fi
+
+    if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
+        grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+        echo "Info: ~/.bashrc -------------- OK."
+    else
+        echo "Error: ~/.bashrc ------------- NOT OK."
+        ((cnt_missing++))
+    fi	
+
+    if [ "$cnt_missing" -gt "0" ]; then
+        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
+        return 1
+    fi
+    return 0
+}
+
+# Check if the required number of args is passed to a function
+# $1 - required number of args
+# $2 - all passed args
+check_args() {
+        local parent_func="${FUNCNAME[1]}"
+        local required_number_of_args=$1
+        shift;
+        local total_number_of_args=$#
+        local args=$@
+        if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
+            echo "Error: No arguments provided!"
+            exit 1
+        fi
+        if [ $total_number_of_args -ne $required_number_of_args ]; then
+            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
+            exit 1
+        fi
+        for arg in $args; do
+            if [ -z "$arg" ]; then
+                    echo "Error: Argument cannot be null or empty!"
+            exit 1
+            fi
+        done
+}
+
+# Checks if a file starts with any of the prefixes.
+# $1 - local file name
+check_file_prefix() {
+    # Check arg count and npe, assign values
+    check_args 1 $@
+    local filename=$1
+    # Function logic
+    local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
+    for prefix in "${prefixes[@]}"; do
+        if [[ "$filename" == "$prefix"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Check if current directory is a git repo.
+check_is_git_repo() {
+    if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
+           return 0
+       else
+        return 1
+    fi
+}
+
+# Check all git requirements.
+check_git_repo_requirements() {
+    if ! check_git_installed; then
+        echo "Error: Git is not installed!"
+        exit 1
+    fi
+    if ! check_is_git_repo; then
+        echo "Error: Directory is not a git repo!"
+        exit 1
+    fi
+}
+
+# Check if carrier scac is provided
+check_carrier_set() {
+    if [ -z "$glb_carrier" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# Check if service name is provided
+check_service_set() {
+    if [ -z "$glb_service" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# Check if all dependencies are installed
+check_dependencies() {
+    if ! check_wget_installed; then
+        echo "Info: Wget is not installed. Installing updates may not work properly."
+    fi
+
+    if ! check_gcloud_installed; then
+        echo "Info: GCloud CLI is not installed. You may not have access to GCP."
+    fi
+
+    if ! check_python_installed; then
+        echo "Info: Python is not installed. Comparing files may not work properly."
+    fi
+
+    if ! check_git_installed; then
+        echo "Info: Git is not installed. Syncing with GitHub may not work properly."
+    fi
+
+    if ! check_bash_completion_installed; then
+        echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
+    fi
+}
+
+# Check if carrier is set
+check_carrier_is_set() {
+    if ! check_carrier_set; then
+        echo "Error: No carrier scac provided!"
+        exit 1
+    fi
+}
+
+# Check if service is set
+check_service_is_set() {
+    if ! check_service_set; then
+        echo "Error: No service name provided!"
+        exit 1
+    fi
+}
+
+# Check if files have already been downloaded from passed environment in this runtime
+# $1 - environment name
+check_is_downloaded_from_env() {
+    local $env_name=$1
+    case "$env_name" in
+            "pg")
+                echo "$flg_fresh_gcp_pg_download"
+                ;;
+            "int")
+                echo "$flg_fresh_gcp_qa_int_download"
+                ;;
+            "stg")
+                echo "$flg_fresh_gcp_qa_stage_download"
+                ;;
+            "sbx")
+                echo "$flg_fresh_gcp_sandbox_download"
+                ;;
+            "eu")
+                echo "$flg_fresh_gcp_eu_prod_download"
+                ;;
+            "us")
+                echo "$flg_fresh_gcp_us_prod_download"
+                ;;
+            *)
+                echo "Error: GCP environment '$env_name' not recognized!"
+                exit 1
+                ;;
+        esac
 }
 
 
@@ -704,7 +966,7 @@ autocomplete() {
     elif [[ "\${COMP_WORDS[@]} " =~ " --download " ]]; then
         local env_options=("pg" "int" "stg" "sbx" "eu" "us")
         COMPREPLY=(\$(compgen -W "\${env_options[*]}" -- "\${cur}"))
-    elif [[ "\${COMP_WORDS[@]} " =~ " --update " ]]; then
+    elif [[ "\${COMP_WORDS[*]}" =~ " --update " ]]; then
         local first_param=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
         local second_param=("lcl" "pg" "gh")
         case "\${COMP_WORDS[\${#COMP_WORDS[@]}-2]}" in
@@ -770,245 +1032,9 @@ EOL
 }
 
 
-#####################################################################################################
-###################################### General check functions ######################################
-#####################################################################################################
-
-
-# Check if there is a new release on gcp2git GitHub repo
-check_for_updates() {
-    # Local script version
-    local local_version=$(echo "$version" | sed 's/^v//')
-    # Latest release text
-    local latest_text=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest")
-    # Latest remote version
-    local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
-    # Check if versions are different
-    local version_result=$(
-        awk -v v1="$local_version" -v v2="$remote_version" '
-            BEGIN {
-                if (v1 == v2) {
-                    result = 0;
-                    exit;
-                }
-                split(v1, a, ".");
-                split(v2, b, ".");
-                for (i = 1; i <= length(a); i++) {
-                    if (a[i] < b[i]) {
-                        result = 1;
-                        exit;
-                    } else if (a[i] > b[i]) {
-                        result = 2;
-                        exit;
-                    }
-                }
-                result = 0;
-                exit;
-            }
-            END {
-                print result
-            }'
-    )   
-    
-    if [ "$version_result" -eq 0 ]; then
-        echo "Info: You already have the latest script version ($version)."
-    elif [ "$version_result" -eq 1 ]; then
-        local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
-        echo "Info: New version available (v$remote_version). Your version is (v$local_version)."
-        echo "Info: Release notes:"
-        echo "$release_notes"
-        echo "Info: Visit '$repo/releases' for more info."
-        echo "Q: Do you want to download and install updates? (Y/n):"
-        read do_update
-        if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
-            install_updates "$remote_version"
-        else
-            echo "Info: Update canceled."
-        fi
-    elif [ "$version_result" -eq 2 ]; then
-        echo "Info: You somehow have a version that hasn't been released yet ;)"
-        echo "Info: Latest release is (v$remote_version). Your version is (v$local_version)."
-    fi
-}
-
-# Check if all necessary changes are done during installation
-check_installation() {
-    local cnt_missing=0
-    if check_wget_installed; then
-        echo "Info: wget ------------------- OK."
-    else
-        echo "Error: wget ------------------ NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_gcloud_installed; then
-        echo "Info: gcloud ----------------- OK."
-    else
-        echo "Error: gcloud ---------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_python_installed; then
-        echo "Info: python3 ---------------- OK."
-    else
-        echo "Error: python3 --------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_git_installed; then
-        echo "Info: git -------------------- OK."
-    else
-        echo "Error: git ------------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_bash_completion_installed; then
-        echo "Info: bash-completion -------- OK."
-    else
-        echo "Error: bash-completion ------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-        
-    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
-        echo "Info: ~/gcp2git/ ------------- OK."
-    else
-        echo "Error: ~/gcp2git/ ------------ NOT OK."
-        ((cnt_missing++))
-    fi
-
-    if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
-        grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
-        echo "Info: ~/.bashrc -------------- OK."
-    else
-        echo "Error: ~/.bashrc ------------- NOT OK."
-        ((cnt_missing++))
-    fi	
-
-    if [ "$cnt_missing" -gt "0" ]; then
-        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
-        return 1
-    fi
-    return 0
-}
-
-# Check if the required number of args is passed to a function
-# $1 - required number of args
-# $2 - all passed args
-check_args() {
-        local parent_func="${FUNCNAME[1]}"
-        local required_number_of_args=$1
-        shift;
-        local total_number_of_args=$#
-        local args=$@
-        if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
-            echo "Error: No arguments provided!"
-            exit 1
-        fi
-        if [ $total_number_of_args -ne $required_number_of_args ]; then
-            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
-            exit 1
-        fi
-        for arg in $args; do
-            if [ -z "$arg" ]; then
-                    echo "Error: Argument cannot be null or empty!"
-            exit 1
-            fi
-        done
-}
-
-# Checks if a file starts with any of the prefixes.
-# $1 - local file name
-check_file_prefix() {
-    # Check arg count and npe, assign values
-    check_args 1 $@
-    local filename=$1
-    # Function logic
-    local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
-    for prefix in "${prefixes[@]}"; do
-        if [[ "$filename" == "$prefix"* ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-# Check if current directory is a git repo.
-check_is_git_repo() {
-    if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
-           return 0
-       else
-        return 1
-    fi
-}
-
-# Check all git requirements.
-check_git_repo_requirements() {
-    if ! check_git_installed; then
-        echo "Error: Git is not installed!"
-        exit 1
-    fi
-    if ! check_is_git_repo; then
-        echo "Error: Directory is not a git repo!"
-        exit 1
-    fi
-}
-
-# Check if carrier scac is provided
-check_carrier_set() {
-    if [ -z "$glb_carrier" ]; then
-        return 1
-    fi
-    return 0
-}
-
-# Check if service name is provided
-check_service_set() {
-    if [ -z "$glb_service" ]; then
-        return 1
-    fi
-    return 0
-}
-
-# Check if all dependencies are installed
-check_dependencies() {
-    if ! check_wget_installed; then
-        echo "Info: Wget is not installed. Installing updates may not work properly."
-    fi
-
-    if ! check_gcloud_installed; then
-        echo "Info: GCloud CLI is not installed. You may not have access to GCP."
-    fi
-
-    if ! check_python_installed; then
-        echo "Info: Python is not installed. Comparing files may not work properly."
-    fi
-
-    if ! check_git_installed; then
-        echo "Info: Git is not installed. Syncing with GitHub may not work properly."
-    fi
-
-    if ! check_bash_completion_installed; then
-        echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
-    fi
-}
-
-# Check requirements before calling any action
-check_action_requirements() {
-    if ! check_carrier_set; then
-        echo "Error: No carrier scac provided!"
-        exit 1
-    fi
-    
-    if ! check_service_set; then
-        echo "Error: No service name provided!"
-        exit 1
-    fi
-}
-
-
 
 ###############################################################################################
-###################################### Utility functions ######################################
+###################################### Helper functions ######################################
 ###############################################################################################
 
 
@@ -1038,36 +1064,6 @@ build_local_folder_name_from_env() {
                 ;;
             "us")
                 echo "./downloaded_us_prod_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            *)
-                echo "Error: GCP environment '$env_name' not recognized!"
-                exit 1
-                ;;
-        esac
-}
-
-# Check if files have already been downloaded from passed environment in this runtime
-# $1 - environment name
-check_is_downloaded_from_env() {
-    local $env_name=$1
-    case "$env_name" in
-            "pg")
-                echo "$flg_fresh_gcp_pg_download"
-                ;;
-            "int")
-                echo "$flg_fresh_gcp_qa_int_download"
-                ;;
-            "stg")
-                echo "$flg_fresh_gcp_qa_stage_download"
-                ;;
-            "sbx")
-                echo "$flg_fresh_gcp_sandbox_download"
-                ;;
-            "eu")
-                echo "$flg_fresh_gcp_eu_prod_download"
-                ;;
-            "us")
-                echo "$flg_fresh_gcp_us_prod_download"
                 ;;
             *)
                 echo "Error: GCP environment '$env_name' not recognized!"
@@ -1421,6 +1417,9 @@ download_from_env() {
     # Check arg count and npe, assign values
     check_args 1 $@
     local env_name=$1
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
     # Function logic
     local download_freshness=$(check_is_downloaded_from_env "$env_name")
     if [ "$download_freshness" != "true" ]; then
@@ -1440,6 +1439,9 @@ update_from_to_env() {
     local update_from_env=$1
     local update_to_env=$2
     local from_folder=""
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
     # Function logic
     if [ "$update_from_env" == "$update_to_env" ]; then
         echo "Error: Same value '$update_from_env' provided for source and target environment!"
@@ -1475,6 +1477,9 @@ update_lcl_pg_gh_from_env() {
     check_args 1 $@
     local update_from_env=$1
     local from_folder=""
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
     # Function logic
     from_folder=$(build_local_folder_name_from_env "$update_from_env")
     if [ "$from_folder" != "." ]; then
@@ -1495,12 +1500,12 @@ update_lcl_pg_gh_from_env() {
 
 
 
-# General
-
 # If any args are passed, check if dependencies are installed
 if [ "$flg_args_passed" == "true" ]; then
     check_dependencies
 fi
+
+# General option calls
 
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
@@ -1536,11 +1541,6 @@ fi
 if [ "$flg_update_gitignore" == "true" ]; then
     update_gitignore
     exit 0
-fi
-
-# If any args are passed, check if carrier scac and service name are set
-if [ "$flg_args_passed" == "true" ]; then
-    check_action_requirements
 fi
 
 # Action calls
