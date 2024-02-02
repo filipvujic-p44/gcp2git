@@ -578,11 +578,11 @@ check_args() {
         local args=$@
         if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
             echo "Error: No arguments provided!"
-            exit 1
+            return 1
         fi
         if [ $total_number_of_args -ne $required_number_of_args ]; then
             echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
-            exit 1
+            return 1
         fi
 }
 
@@ -615,11 +615,11 @@ check_is_git_repo() {
 check_git_repo_requirements() {
     if ! check_git_installed; then
         echo "Error: Git is not installed!"
-        exit 1
+        return 1
     fi
     if ! check_is_git_repo; then
         echo "Error: Directory is not a git repo!"
-        exit 1
+        return 1
     fi
 }
 
@@ -666,7 +666,7 @@ check_dependencies() {
 check_carrier_is_set() {
     if ! check_carrier_set; then
         echo "Error: No carrier scac provided!"
-        exit 1
+        return 1
     fi
 }
 
@@ -674,7 +674,7 @@ check_carrier_is_set() {
 check_service_is_set() {
     if ! check_service_set; then
         echo "Error: No service name provided!"
-        exit 1
+        return 1
     fi
 }
 
@@ -703,7 +703,7 @@ check_is_downloaded_from_env() {
                 ;;
             *)
                 echo "Error: GCP environment '$env_name' not recognized!"
-                exit 1
+                return 1
                 ;;
         esac
 }
@@ -1063,8 +1063,8 @@ resolve_env_to_full_name() {
             echo "us_prod"
             ;;
         *)
-            echo "Error: Environment '$env_name' not recognized!"
-            exit 1
+            echo "Error: Environment '$env_name' not recognized!" >&2
+            return 1
             ;;
     esac
 }
@@ -1118,8 +1118,8 @@ resolve_env_to_gcp_base_url() {
                 echo "$gcp_us_prod_base_url" 
                 ;;
             *)
-                echo "Error: GCP environment '$env_name' not recognized!"
-                exit 1
+                echo "Error: GCP environment '$env_name' not recognized!" >&2
+                return 1
                 ;;
         esac
 }
@@ -1217,7 +1217,7 @@ compare_files() {
                 target_folder_file_path="$target_folder/$filename"
                 # Check if target file exists
                 if [ ! -f "$target_folder_file_path" ]; then
-                    echo "Error: File $target_folder_file_path doesn't exist!"
+                    echo "Error: File $target_folder_file_path doesn't exist!" >&2
                     ((diffCount++))
                 # If it exists, compare files
                 elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
@@ -1411,22 +1411,25 @@ compare_envs() {
     check_args 2 "$@"
     local env_1=$1
     local env_2=$2
-    # Function logic
-    if [ "$env_1" == "$env_2" ]; then
-        echo "Error: Same value '$env_1' provided for source and target folder/environment!"
+    # Requirement checks
+    # If env not resolved, exit
+    if [ -z $(resolve_env_to_full_name "$env_1") ] || [ -z $(resolve_env_to_full_name "$env_2") ]; then
         exit 1
     fi
-
+        # If envs are same value, exit
+    if [ "$env_1" == "$env_2" ]; then
+        echo "Error: Same value '$env_1' provided for source and target folder/environment!" >&2
+        exit 1
+    fi
+    # Function logic
     local env_1_full_name="$env_1"
     local env_2_full_name="$env_2"
-
     if [ ! -d "$env_1" ]; then
         env_1_full_name=$(resolve_env_to_full_name "$env_1")
     fi
     if [ ! -d "$env_2" ]; then
         env_2_full_name=$(resolve_env_to_full_name "$env_2")
     fi
-
     echo "Info: Comparing '$env_1_full_name' and '$env_2_full_name'."
     if [ ! -d "$env_1" ]; then
         local local_folder_1=$(build_local_folder_name_from_env "$env_1")
@@ -1454,6 +1457,10 @@ download_from_env() {
     check_args 1 "$@"
     local env_name=$1
     # Requirement checks
+    # If env not resolved, exit
+    if [ -z $(resolve_env_to_full_name "$env_name") ]; then
+        exit 1
+    fi
     check_carrier_is_set
     check_service_is_set
     # Function logic
@@ -1483,11 +1490,15 @@ update_from_to_env() {
     local update_to_env=$2
     local from_folder=""
     # Requirement checks
+    # If env not resolved, exit
+    if [ -z $(resolve_env_to_full_name "$update_from_env") ] || [ -z $(resolve_env_to_full_name "$update_to_env") ]; then
+        exit 1
+    fi
     check_carrier_is_set
     check_service_is_set
     # Function logic
     if [ "$update_from_env" == "$update_to_env" ]; then
-        echo "Error: Same value '$update_from_env' provided for source and target environment!"
+        echo "Error: Same value '$update_from_env' provided for source and target environment!" >&2
         exit 1
     fi
     local env_from_full_name=$(resolve_env_to_full_name "$update_from_env")
@@ -1510,8 +1521,7 @@ update_from_to_env() {
             commit_git
             ;;
         *)
-            echo "Error: Update to environment '$update_to_env' not supported!"
-            exit 1
+            :
             ;;
     esac
 }
@@ -1524,6 +1534,10 @@ update_lcl_pg_gh_from_env() {
     local update_from_env=$1
     local from_folder=""
     # Requirement checks
+    # If env not resolved, exit
+    if [ -z $(resolve_env_to_full_name "$update_from_env") ]; then
+        exit 1
+    fi
     check_carrier_is_set
     check_service_is_set
     # Function logic
@@ -1620,8 +1634,10 @@ fi
 
 
 # Remove temporary download folders
-if [ -d "./tmp_gcp2git"* ]; then
-    rm -r "./tmp_gcp2git"*
-fi
+for dir in "tmp_gcp2git"*; do
+    if [ -d "$dir" ]; then
+        rm -r "$dir"
+    fi
+done
 
 echo "Info: Script completed."
