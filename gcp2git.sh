@@ -420,7 +420,7 @@ done
 
 
 ################################################################################################
-###################################### Check functions ##############################
+###################################### Check functions #########################################
 ################################################################################################
 
 
@@ -1033,38 +1033,63 @@ EOL
 
 
 
+# Return full environment name based on passed short name
+# $1 - environment short name
+resolve_env_to_full_name() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local env_name=$1
+    # Function logic
+    case "$env_name" in
+        "lcl" | "." | "./")
+            echo "."
+            ;;
+        "pg")
+            echo "playground"
+            ;;
+        "int")
+            echo "qa_int"
+            ;;
+        "stg")
+            echo "qa_stage"
+            ;;
+        "sbx")
+            echo "sandbox" 
+            ;;
+        "eu")
+            echo "eu_prod"
+            ;;
+        "us")
+            echo "us_prod"
+            ;;
+        *)
+            echo "Error: Environment '$env_name' not recognized!"
+            exit 1
+            ;;
+    esac
+}
+
 # Return corresponding GCP base url based on passed environment name
 # $1 - environment name
 build_local_folder_name_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
     local env_name=$1
-    case "$env_name" in
-            "lcl" | "." | "./")
-                echo "."
-                ;;
-            "pg")
-                echo "./downloaded_playground_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            "int")
-                echo "./downloaded_qa_int_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            "stg")
-                echo "./downloaded_qa_stage_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            "sbx")
-                echo "./downloaded_sandbox_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}" 
-                ;;
-            "eu")
-                echo "./downloaded_eu_prod_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            "us")
-                echo "./downloaded_us_prod_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
-                ;;
-            *)
-                echo "Error: GCP environment '$env_name' not recognized!"
-                exit 1
-                ;;
-        esac
+    # Function logic
+    local prefix=""
+    if [ "$flg_download_from_env" == "true" ]; then
+        prefix="downloaded_gcp2git"
+    else
+        prefix="tmp_gcp2git"
+    fi
+    if [ "$env_name" == "lcl" ]; then
+        echo "."
+    else
+        local full_env_name=$(resolve_env_to_full_name "$env_name")
+        echo "./${prefix}_${full_env_name}_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+    fi
 }
+
 
 # Return corresponding GCP base url based on passed environment name
 # $1 - environment name
@@ -1135,7 +1160,6 @@ download_from_url() {
     local gcp_full_url=$1
     local local_folder=$2
     # Function logic
-    echo "Info: Downloading GCP playground files."
     if [ -d "$local_folder" ]; then
         rm -r "$local_folder"
         mkdir "$local_folder"
@@ -1273,7 +1297,6 @@ update_local_from_source() {
     local source_folder=$1
     local destination_folder="."
     # Function logic
-    echo "Info: Updating files in '$destination_folder' using '$source_folder' files."
     update_file_content "$source_folder" "$destination_folder"
 }
 
@@ -1393,6 +1416,18 @@ compare_envs() {
         echo "Error: Same value '$env_1' provided for source and target folder/environment!"
         exit 1
     fi
+
+    local env_1_full_name="$env_1"
+    local env_2_full_name="$env_2"
+
+    if [ ! -d "$env_1" ]; then
+        env_1_full_name=$(resolve_env_to_full_name "$env_1")
+    fi
+    if [ ! -d "$env_2" ]; then
+        env_2_full_name=$(resolve_env_to_full_name "$env_2")
+    fi
+
+    echo "Info: Comparing '$env_1_full_name' and '$env_2_full_name'."
     if [ ! -d "$env_1" ]; then
         local local_folder_1=$(build_local_folder_name_from_env "$env_1")
         if [ "$local_folder_1" != "." ]; then
@@ -1426,8 +1461,15 @@ download_from_env() {
     if [ "$download_freshness" != "true" ]; then
         local local_folder=$(build_local_folder_name_from_env "$env_name")
         local base_url=$(resolve_env_to_gcp_base_url "$env_name")
+        local env_full_name=$(resolve_env_to_full_name "$env_name")
+        echo "Info: Downloading '$env_full_name' GCP files."
         local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
         download_from_url "$full_url" "$local_folder"
+        if [ -z "$(ls -A "$local_folder")" ]; then
+            rm -r "$local_folder"
+            echo "Info: No files downloaded."
+        fi 
+
     fi
 }
 
@@ -1448,6 +1490,9 @@ update_from_to_env() {
         echo "Error: Same value '$update_from_env' provided for source and target environment!"
         exit 1
     fi
+    local env_from_full_name=$(resolve_env_to_full_name "$update_from_env")
+    local env_to_full_name=$(resolve_env_to_full_name "$update_to_env")
+    echo "Info: Updating '$env_to_full_name' files using '$env_from_full_name' as source."
     from_folder=$(build_local_folder_name_from_env "$update_from_env")
     if [ "$from_folder" != "." ]; then
         download_from_env "$update_from_env"
@@ -1574,35 +1619,9 @@ fi
 
 
 
-# Remove local playground download folder
-if [ -d "$local_playground_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_playground_folder")" ]; }; then
-    rm -r "$local_playground_folder"
+# Remove temporary download folders
+if [ -d "./tmp_gcp2git"* ]; then
+    rm -r "./tmp_gcp2git"*
 fi
-
-# Remove local qa-int download folder
-if [ -d "$local_qa_int_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_qa_int_folder")" ]; }; then
-    rm -r "$local_qa_int_folder"
-fi
-
-# Remove local qa stage download folder
-if [ -d "$local_qa_stage_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_qa_stage_folder")" ]; }; then
-    rm -r "$local_qa_stage_folder"
-fi
-
-# Remove local sandbox download folder
-if [ -d "$local_sandbox_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_sandbox_folder")" ]; }; then
-    rm -r "$local_sandbox_folder"
-fi
-
-# Remove local eu prod download folder
-if [ -d "$local_eu_prod_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_eu_prod_folder")" ]; }; then
-    rm -r "$local_eu_prod_folder"
-fi
-
-# Remove local us prod download folder
-if [ -d "$local_us_prod_folder" ] && { [ "$flg_download_from_env" != "true" ] || [ -z "$(ls -A "$local_us_prod_folder")" ]; }; then
-    rm -r "$local_us_prod_folder"
-fi
-
 
 echo "Info: Script completed."
