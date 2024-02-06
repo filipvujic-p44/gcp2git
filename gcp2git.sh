@@ -6,6 +6,11 @@ repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
 
+###################################### TO-DO ##############################################
+# - update from folder (or just resolve dir to dirname)
+# - compare all remotes
+###########################################################################################
+
 
 
 ###########################################################################################
@@ -1412,8 +1417,11 @@ compare_envs() {
     local env_1=$1
     local env_2=$2
     # Requirement checks
-    # If env not resolved, exit
-    if [ -z $(resolve_env_to_full_name "$env_1") ] || [ -z $(resolve_env_to_full_name "$env_2") ]; then
+    # If param is not a dir, but also env name not resolved, exit
+    if [ ! -d "$env_1" ] && [ -z $(resolve_env_to_full_name "$env_1") ]; then
+        exit 1
+    fi
+    if [ ! -d "$env_2" ] && [ -z $(resolve_env_to_full_name "$env_2") ]; then
         exit 1
     fi
         # If envs are same value, exit
