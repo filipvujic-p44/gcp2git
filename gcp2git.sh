@@ -1,7 +1,7 @@
 #!/bin/bash
 version="v1.1.0"
 author="Filip Vujic"
-last_updated="01-Feb-2024"
+last_updated="06-Feb-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
