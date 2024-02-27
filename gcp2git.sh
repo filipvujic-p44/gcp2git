@@ -1,7 +1,7 @@
 #!/bin/bash
 version="v1.1.0"
 author="Filip Vujic"
-last_updated="06-Feb-2024"
+last_updated="27-Feb-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -9,6 +9,7 @@ repo="https://github.com/$repo_owner/$repo_name"
 ###################################### TO-DO ##############################################
 # - update from folder (or just resolve dir to dirname)
 # - compare all remotes
+# - download all from env
 ###########################################################################################
 
 
@@ -432,22 +433,22 @@ done
 
 # Check if wget is installed
 check_wget_installed() {
-    command -v wget &> /dev/null
+    command -v wget &>/dev/null
 }
 
 # Check if GCloud CLI is installed
 check_gcloud_installed() {
-    command -v gcloud &> /dev/null
+    command -v gcloud &>/dev/null
 }
 
 # Check if python3 is installed
 check_python_installed() {
-    command -v python3 &> /dev/null
+    command -v python3 &>/dev/null
 }
 
 # Check if git is installed
 check_git_installed() {
-    command -v git &> /dev/null
+    command -v git &>/dev/null
 }
 
 check_bash_completion_installed() {
@@ -566,7 +567,7 @@ check_installation() {
     fi	
 
     if [ "$cnt_missing" -gt "0" ]; then
-        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
+        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script." >&2
         return 1
     fi
     return 0
@@ -582,11 +583,11 @@ check_args() {
         local total_number_of_args=$#
         local args=$@
         if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
-            echo "Error: No arguments provided!"
+            echo "Error: No arguments provided!" >&2
             return 1
         fi
         if [ $total_number_of_args -ne $required_number_of_args ]; then
-            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!"
+            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!" >&2
             return 1
         fi
 }
@@ -619,11 +620,11 @@ check_is_git_repo() {
 # Check all git requirements.
 check_git_repo_requirements() {
     if ! check_git_installed; then
-        echo "Error: Git is not installed!"
+        echo "Error: Git is not installed!" >&2
         return 1
     fi
     if ! check_is_git_repo; then
-        echo "Error: Directory is not a git repo!"
+        echo "Error: Directory is not a git repo!" >&2
         return 1
     fi
 }
@@ -670,16 +671,16 @@ check_dependencies() {
 # Check if carrier is set
 check_carrier_is_set() {
     if ! check_carrier_set; then
-        echo "Error: No carrier scac provided!"
-        return 1
+        echo "Error: No carrier scac provided!" >&2
+        exit 1
     fi
 }
 
 # Check if service is set
 check_service_is_set() {
     if ! check_service_set; then
-        echo "Error: No service name provided!"
-        return 1
+        echo "Error: No service name provided!" >&2
+        exit 1
     fi
 }
 
@@ -707,7 +708,7 @@ check_is_downloaded_from_env() {
                 echo "$flg_fresh_gcp_us_prod_download"
                 ;;
             *)
-                echo "Error: GCP environment '$env_name' not recognized!"
+                echo "Error: GCP environment '$env_name' not recognized!" >&2
                 return 1
                 ;;
         esac
@@ -770,7 +771,7 @@ install_script() {
             echo "Info: Logged in to GCloud CLI."
             echo "Info: Use '--help-gcloud-cli' for more info."
         else
-            echo "Error: Something went wrong during GCloud CLI login attempt."
+            echo "Error: Something went wrong during GCloud CLI login attempt." >&2
         fi
     else
         echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
@@ -814,12 +815,12 @@ install_gcloud() {
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
         # Update and install the GCloud CLI:
         sudo apt update && sudo apt install google-cloud-cli
-        if command -v gcloud &> /dev/null; then
+        if command -v gcloud &>/dev/null; then
             echo "Info: GCloud CLI installed."
             echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
             echo "Info: Use 'gcloud auth list' to check if you are logged in."
         else
-            echo "Error: Something went wrong during installation. Consider using '--help-gcloud-cli' option and run the steps manually."
+            echo "Error: Something went wrong during installation. Consider using '--help-gcloud-cli' option and run the steps manually." >&2
             exit 1
         fi
     else
@@ -1045,33 +1046,39 @@ resolve_env_to_full_name() {
     check_args 1 "$@"
     local env_name=$1
     # Function logic
+    result=""
     case "$env_name" in
         "lcl" | "." | "./")
-            echo "."
+            result="."
             ;;
         "pg")
-            echo "playground"
+            result="playground"
             ;;
         "int")
-            echo "qa_int"
+            result="qa_int"
             ;;
         "stg")
-            echo "qa_stage"
+            result="qa_stage"
             ;;
         "sbx")
-            echo "sandbox" 
+            result="sandbox" 
             ;;
         "eu")
-            echo "eu_prod"
+            result="eu_prod"
             ;;
         "us")
-            echo "us_prod"
+            result="us_prod"
             ;;
         *)
-            echo "Error: Environment '$env_name' not recognized!" >&2
-            return 1
+            :
             ;;
     esac
+    if [ -z "$result" ]; then
+        echo "Error: Environment '$env_name' not recognized!" >&2
+        return 1
+    else
+        echo "$result"
+    fi
 }
 
 # Return corresponding GCP base url based on passed environment name
@@ -1103,30 +1110,36 @@ resolve_env_to_gcp_base_url() {
     check_args 1 "$@"
     local env_name=$1
     # Function logic
+    result=""
     case "$env_name" in
-            "pg")
-                echo "$gcp_pg_base_url"
-                ;;
-            "int")
-                echo "$gcp_qa_int_base_url"
-                ;;
-            "stg")
-                echo "$gcp_qa_stage_base_url" 
-                ;;
-            "sbx")
-                echo "$gcp_sandbox_base_url" 
-                ;;
-            "eu")
-                echo "$gcp_eu_prod_base_url" 
-                ;;
-            "us")
-                echo "$gcp_us_prod_base_url" 
-                ;;
-            *)
-                echo "Error: GCP environment '$env_name' not recognized!" >&2
-                return 1
-                ;;
-        esac
+        "pg")
+            result="$gcp_pg_base_url"
+            ;;
+        "int")
+            result="$gcp_qa_int_base_url"
+            ;;
+        "stg")
+            result="$gcp_qa_stage_base_url" 
+            ;;
+        "sbx")
+            result="$gcp_sandbox_base_url" 
+            ;;
+        "eu")
+            result="$gcp_eu_prod_base_url" 
+            ;;
+        "us")
+            result="$gcp_us_prod_base_url" 
+            ;;
+        *)
+            :
+            ;;
+    esac
+    if [ -z "$result" ]; then
+        echo "Error: Environment '$env_name' not recognized!" >&2
+        return 1
+    else
+        echo "$result"
+    fi
 }
 
 # Build GCP url from passed values.
@@ -1164,6 +1177,12 @@ download_from_url() {
     check_args 2 "$@"
     local gcp_full_url=$1
     local local_folder=$2
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$local_folder" ]; then
+        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     if [ -d "$local_folder" ]; then
         rm -r "$local_folder"
@@ -1182,6 +1201,12 @@ download_from_gcp() {
     check_args 2 "$@"
     local gcp_url=$1
     local local_folder=$2
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$local_folder" ]; then
+        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     gsutil -q -m cp -r "$gcp_url" "$local_folder"
 }
@@ -1194,6 +1219,12 @@ upload_file_to_gcp() {
     check_args 2 "$@"
     local filename=$1
     local gcp_url=$2
+    # Requirement checks
+    # If not a file, exit
+    if [ ! -f "$filename" ]; then
+        echo "Error: Specified path '$filename' is not a valid file!" >&2
+        exit 1
+    fi
     # Function logic
     if [ -d "$filename" ]; then
         gsutil -q cp -r "$filename" "$gcp_url"
@@ -1210,6 +1241,16 @@ compare_files() {
     check_args 2 "$@"
     local source_folder=$1
     local target_folder=$2
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
+    if [ ! -d "$target_folder" ]; then
+        echo "Error: Specified path '$target_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     echo "Info: Comparing folders '$source_folder' and '$target_folder'."
     local diffCount=0;
@@ -1225,11 +1266,11 @@ compare_files() {
                     echo "Error: File $target_folder_file_path doesn't exist!" >&2
                     ((diffCount++))
                 # If it exists, compare files
-                elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
+                elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" &>/dev/null; then
                     :
                 # If files are .json type, try to fix the formatting
                 elif [[ "$source_file" == *.json ]] &&
-                    diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &> /dev/null; then
+                    diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &>/dev/null; then
                     echo "Info: File '$filename' has matching content, but different formatting."
                     ((diffCount++))
                 else
@@ -1244,7 +1285,6 @@ compare_files() {
                         # Print lines that the remote file contains, but your local one doesn't
                         echo "Info: File content: '$target_folder_file_path':"
                         grep -nFxvf "$source_file" "$target_folder_file_path"
-                        
                     fi
                     ((diffCount++))
                 fi
@@ -1269,6 +1309,12 @@ update_file_content() {
     local source_folder=$1
     local destination_folder=$2
     # Function logic
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Loop through the files in the source folder
     for source_file in "$source_folder"/*; do
         # Check if it's a file
@@ -1301,6 +1347,12 @@ update_local_from_source() {
     check_args 1 "$@"
     local source_folder=$1
     local destination_folder="."
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     update_file_content "$source_folder" "$destination_folder"
 }
@@ -1311,6 +1363,12 @@ upload_to_pg() {
     # Check arg count and npe, assign values
     check_args 1 "$@"
     local source_folder=$1
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     local tmp_dir="./tmp_$glb_carrier"
     if [ -d "$tmp_dir" ]; then
@@ -1417,11 +1475,13 @@ compare_envs() {
     local env_1=$1
     local env_2=$2
     # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
     # If param is not a dir, but also env name not resolved, exit
-    if [ ! -d "$env_1" ] && [ -z $(resolve_env_to_full_name "$env_1") ]; then
+    if [ ! -d "$env_1" ] && ! resolve_env_to_full_name "$env_1" >/dev/null; then
         exit 1
     fi
-    if [ ! -d "$env_2" ] && [ -z $(resolve_env_to_full_name "$env_2") ]; then
+    if [ ! -d "$env_2" ] && ! resolve_env_to_full_name "$env_2" >/dev/null; then
         exit 1
     fi
         # If envs are same value, exit
@@ -1465,12 +1525,17 @@ download_from_env() {
     check_args 1 "$@"
     local env_name=$1
     # Requirement checks
-    # If env not resolved, exit
-    if [ -z $(resolve_env_to_full_name "$env_name") ]; then
-        exit 1
-    fi
     check_carrier_is_set
     check_service_is_set
+    # If env lcl is passed, exit
+    if [ "$env_name" = "lcl" ] || [ "$env_name" = "." ] || [ "$env_name" = "./" ]; then
+        echo "Error: Must specify a remote environment!" >&2
+        exit 1
+    fi
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$env_name" >/dev/null; then
+        exit 1
+    fi
     # Function logic
     local download_freshness=$(check_is_downloaded_from_env "$env_name")
     if [ "$download_freshness" != "true" ]; then
@@ -1484,7 +1549,6 @@ download_from_env() {
             rm -r "$local_folder"
             echo "Info: No files downloaded."
         fi 
-
     fi
 }
 
@@ -1498,12 +1562,12 @@ update_from_to_env() {
     local update_to_env=$2
     local from_folder=""
     # Requirement checks
-    # If env not resolved, exit
-    if [ -z $(resolve_env_to_full_name "$update_from_env") ] || [ -z $(resolve_env_to_full_name "$update_to_env") ]; then
-        exit 1
-    fi
     check_carrier_is_set
     check_service_is_set
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$update_from_env" >/dev/null || ! resolve_env_to_full_name "$update_to_env" >/dev/null; then
+        exit 1
+    fi
     # Function logic
     if [ "$update_from_env" == "$update_to_env" ]; then
         echo "Error: Same value '$update_from_env' provided for source and target environment!" >&2
@@ -1542,12 +1606,12 @@ update_lcl_pg_gh_from_env() {
     local update_from_env=$1
     local from_folder=""
     # Requirement checks
-    # If env not resolved, exit
-    if [ -z $(resolve_env_to_full_name "$update_from_env") ]; then
-        exit 1
-    fi
     check_carrier_is_set
     check_service_is_set
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$update_from_env" >/dev/null; then
+        exit 1
+    fi
     # Function logic
     from_folder=$(build_local_folder_name_from_env "$update_from_env")
     if [ "$from_folder" != "." ]; then
