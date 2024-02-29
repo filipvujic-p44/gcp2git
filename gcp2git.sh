@@ -1177,18 +1177,17 @@ download_from_url() {
     check_args 2 "$@"
     local gcp_full_url=$1
     local local_folder=$2
-    # Requirement checks
-    # If not a directory, exit
-    if [ ! -d "$local_folder" ]; then
-        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
-        exit 1
-    fi
     # Function logic
     if [ -d "$local_folder" ]; then
         rm -r "$local_folder"
         mkdir "$local_folder"
     else
         mkdir "$local_folder"
+    fi
+    # If not a directory, exit
+    if [ ! -d "$local_folder" ]; then
+        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
+        exit 1
     fi
     download_from_gcp "$gcp_full_url" "$local_folder"
 }
