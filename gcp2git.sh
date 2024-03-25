@@ -97,19 +97,23 @@ Options (details):
     transportation-modes:
         --ltl                             Set mode to 'LTL' (default value).
         --tl                              Set mode to 'TL'.
+        --all-modes                       Set mode to '*'.
         
     interaction-types:
         --carrier-push                    Set interaction to 'CARRIER_PUSH'.
         --carrier-pull                    Set interaction to 'CARRIER_PULL' (default value).
+        --all-interactions                Set interaction to '*'.
 
     service-types:
         --rating                          Set service to 'RATING'.
         --dispatch                        Set service to 'DISPATCH'.
         --tracking                        Set service to 'SHIPMENT_STATUS'.
         --imaging                         Set service to 'IMAGING'.
+        --all-services                    Set service to '*'.
 
     carrier:
         --scac <carrier_scac>             Set carrier scac (case insensitive; can be set without using '--scac' flag).
+        --all-carriers                    Set carrier to '*'.
 
 Usage:
 ------
@@ -422,6 +426,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
         --scac)
             glb_carrier="${2^^}"
             shift 2 # plus 1 after case block
+            ;;
+        --all-carriers)
+            glb_carrier="*"
             ;;
         *)
             glb_carrier="${1^^}"
@@ -962,9 +969,11 @@ autocomplete() {
     _init_completion || return
 
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-    options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall --chk-install --generate-env-file "
-    options+="--update-gitignore-file --compare --download --update --update-lcl-pg-gh "
-    options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions --rating --dispatch --tracking --imaging --all-services --scac"
+    options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall "
+    options+="--chk-install --generate-env-file --update-gitignore-file "
+    options+="--compare --download --update --update-lcl-pg-gh "
+    options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions "
+    options+="--rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
 
     if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
         local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
@@ -1560,7 +1569,6 @@ download_from_env() {
         local env_full_name=$(resolve_env_to_full_name "$env_name")
         echo "Info: Downloading '$env_full_name' GCP files."
         local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
-        echo "debug: $full_url" # debug
         download_from_url "$full_url" "$local_folder"
         if [ -z "$(ls -A "$local_folder")" ]; then
             rm -r "$local_folder"
