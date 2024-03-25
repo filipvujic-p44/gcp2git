@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.0"
+version="v1.1.1"
 author="Filip Vujic"
-last_updated="27-Feb-2024"
+last_updated="25-Mar-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -9,7 +9,6 @@ repo="https://github.com/$repo_owner/$repo_name"
 ###################################### TO-DO ##############################################
 # - update from folder (or just resolve dir to dirname)
 # - compare all remotes
-# - download all from env
 ###########################################################################################
 
 
@@ -393,11 +392,17 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
         --tl)
             glb_mode="TL"
             ;;
+        --all-modes)
+            glb_mode="*"
+            ;;
         --carrier-push)
             glb_interaction="CARRIER_PUSH"
             ;;
         --carrier-pull)
-            interaction="CARRIER_PULL"
+            glb_interaction="CARRIER_PULL"
+            ;;
+        --all-interactions)
+            glb_interaction="*"
             ;;
         --rating)
             glb_service="RATING"
@@ -410,6 +415,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --imaging)
             glb_service="IMAGING"
+            ;;
+        --all-services)
+            glb_service="*"
             ;;
         --scac)
             glb_carrier="${2^^}"
@@ -956,7 +964,7 @@ autocomplete() {
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
     options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall --chk-install --generate-env-file "
     options+="--update-gitignore-file --compare --download --update --update-lcl-pg-gh "
-    options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
+    options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions --rating --dispatch --tracking --imaging --all-services --scac"
 
     if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
         local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
@@ -1017,11 +1025,11 @@ US_PROD_BASE_URL=""
 
 # INTEGRATION DETAILS (defaults: MODE=LTL, INTERACTION=CARRIER_PULL)
 # Fields can be overridden by flags
-# Modes  = [ LTL, TL ]
+# Modes  = [ LTL, TL, *]
 MODE=""
-# Interactions = [ CARRIER_PULL, CARRIER_PUSH  ]
+# Interactions = [ CARRIER_PULL, CARRIER_PUSH, *  ]
 INTERACTION=""
-# Services = [ RATING, DISPATCH, TRACKING, IMAGING ]
+# Services = [ RATING, DISPATCH, TRACKING, IMAGING, * ]
 SERVICE="MY_SERVICE"
 # Carrier scac
 SCAC="MY_SCAC"
@@ -1098,7 +1106,8 @@ build_local_folder_name_from_env() {
         echo "."
     else
         local full_env_name=$(resolve_env_to_full_name "$env_name")
-        echo "./${prefix}_${full_env_name}_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+        local full_name="./${prefix}_${full_env_name}_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+        echo "$full_name" | sed 's/_\*.*//'
     fi
 }
 
@@ -1158,15 +1167,23 @@ build_full_gcp_url() {
     local carrier=$5
     # Function logic
     local full_url=""
-    if [ "$carrier" == "*" ]; then
-        full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
-    elif [ -z "$carrier" ]; then
-        full_url="$base_gcp_url/$mode/$service/$interaction"
-    else
-        full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
-    fi
-    flg_downloaded_playground=true
-    echo "$full_url"
+    # if [ "$mode" == "*" ]; then
+    #     full_url="$base_gcp_url/*"
+    # elif [ "$service" == "*" ]; then
+    #     full_url="$base_gcp_url/$mode/*"
+    # elif [ "$interaction" == "*" ]; then
+    #     full_url="$base_gcp_url/$mode/$service/*"
+    # elif [ "$carrier" == "*" ]; then
+    #     full_url="$base_gcp_url/$mode/$service/$interaction/*"
+    # elif [ -z "$carrier" ]; then
+    #     full_url="$base_gcp_url/$mode/$service/$interaction"
+    # else
+    #     full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
+    # fi
+    full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
+    # flg_downloaded_playground=true
+    local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
+    echo "$trimmed_url*"
 }
 
 # Download files into specified folder from given url
@@ -1543,6 +1560,7 @@ download_from_env() {
         local env_full_name=$(resolve_env_to_full_name "$env_name")
         echo "Info: Downloading '$env_full_name' GCP files."
         local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
+        echo "debug: $full_url" # debug
         download_from_url "$full_url" "$local_folder"
         if [ -z "$(ls -A "$local_folder")" ]; then
             rm -r "$local_folder"
