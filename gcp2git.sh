@@ -398,6 +398,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --all-modes)
             glb_mode="*"
+            glb_interaction="*"
+            glb_service="*"
+            glb_carrier="*"
             ;;
         --carrier-push)
             glb_interaction="CARRIER_PUSH"
@@ -407,6 +410,8 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --all-interactions)
             glb_interaction="*"
+            glb_service="*"
+            glb_carrier="*"
             ;;
         --rating)
             glb_service="RATING"
@@ -422,6 +427,7 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --all-services)
             glb_service="*"
+            glb_carrier="*"
             ;;
         --scac)
             glb_carrier="${2^^}"
