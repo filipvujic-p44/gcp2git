@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.1"
+version="v1.1.2"
 author="Filip Vujic"
-last_updated="25-Mar-2024"
+last_updated="27-Mar-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -57,9 +57,9 @@ Options:
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
                [--generate-env-file] [--update-gitignore-file] 
                [--compare] [--download] [--update] [--update-lcl-pg-gh] 
-               [--ltl] [--tl] [--carrier-push] [--carrier-pull] 
-               [--rating] [--dispatch] [--tracking] [--imaging] 
-               [--scac <carrier_scac>] <carrier_scac>
+               [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] 
+               [--all-interactions] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--all-services] [--scac <carrier_scac>] <carrier_scac> [--all-carriers]
 
 Options (details):
 ------------------
