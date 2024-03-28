@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.2"
+version="v1.1.3"
 author="Filip Vujic"
-last_updated="27-Mar-2024"
+last_updated="28-Mar-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -1182,23 +1182,14 @@ build_full_gcp_url() {
     local carrier=$5
     # Function logic
     local full_url=""
-    # if [ "$mode" == "*" ]; then
-    #     full_url="$base_gcp_url/*"
-    # elif [ "$service" == "*" ]; then
-    #     full_url="$base_gcp_url/$mode/*"
-    # elif [ "$interaction" == "*" ]; then
-    #     full_url="$base_gcp_url/$mode/$service/*"
-    # elif [ "$carrier" == "*" ]; then
-    #     full_url="$base_gcp_url/$mode/$service/$interaction/*"
-    # elif [ -z "$carrier" ]; then
-    #     full_url="$base_gcp_url/$mode/$service/$interaction"
-    # else
-    #     full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
-    # fi
-    full_url="$base_gcp_url/$mode/$service/$interaction/$carrier/*"
+    full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
     # flg_downloaded_playground=true
-    local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
-    echo "$trimmed_url*"
+    if [[ $full_url == *'*'* ]]; then
+	    local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
+	    echo "$trimmed_url*"
+	else
+		echo "$full_url"
+    fi
 }
 
 # Download files into specified folder from given url
@@ -1575,7 +1566,7 @@ download_from_env() {
         local env_full_name=$(resolve_env_to_full_name "$env_name")
         echo "Info: Downloading '$env_full_name' GCP files."
         local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
-        download_from_url "$full_url" "$local_folder"
+        download_from_url "$full_url/*" "$local_folder"
         if [ -z "$(ls -A "$local_folder")" ]; then
             rm -r "$local_folder"
             echo "Info: No files downloaded."
