@@ -1,5 +1,5 @@
 #!/bin/bash
-version="v1.1.3"
+version="v1.1.4"
 author="Filip Vujic"
 last_updated="28-Mar-2024"
 repo_owner="filipvujic-p44"
@@ -99,17 +99,17 @@ Options (details):
         --tl                              Set mode to 'TL'.
         --all-modes                       Set mode to '*'.
         
-    interaction-types:
-        --carrier-push                    Set interaction to 'CARRIER_PUSH'.
-        --carrier-pull                    Set interaction to 'CARRIER_PULL' (default value).
-        --all-interactions                Set interaction to '*'.
-
     service-types:
         --rating                          Set service to 'RATING'.
         --dispatch                        Set service to 'DISPATCH'.
         --tracking                        Set service to 'SHIPMENT_STATUS'.
         --imaging                         Set service to 'IMAGING'.
         --all-services                    Set service to '*'.
+
+    interaction-types:
+        --carrier-push                    Set interaction to 'CARRIER_PUSH'.
+        --carrier-pull                    Set interaction to 'CARRIER_PULL' (default value).
+        --all-interactions                Set interaction to '*'.
 
     carrier:
         --scac <carrier_scac>             Set carrier scac (case insensitive; can be set without using '--scac' flag).
@@ -239,8 +239,8 @@ gcp_eu_prod_base_url="gs://p44-production-eu-data-feed-plan-definitions/producti
 gcp_us_prod_base_url="gs://data-feed-plan-definitions-prod-prod-us-central1-582378/production/src"
 
 glb_mode="LTL"
-glb_interaction="CARRIER_PULL"
 glb_service=""
+glb_interaction="CARRIER_PULL"
 glb_carrier=""
 
 # Check if any args are passed to the script
@@ -292,14 +292,14 @@ if [ -e ".env_gcp2git" ]; then
         glb_mode="$MODE"
     fi
 
-    # Load interaction value
-    if [ ! -z "$INTERACTION" ]; then
-        glb_interaction="$INTERACTION"
-    fi
-
     # Load service value
     if [ ! -z "$SERVICE" ]; then
         glb_service="$SERVICE"
+    fi
+
+    # Load interaction value
+    if [ ! -z "$INTERACTION" ]; then
+        glb_interaction="$INTERACTION"
     fi
 
     # Load carrier value
@@ -398,19 +398,8 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --all-modes)
             glb_mode="*"
-            glb_interaction="*"
             glb_service="*"
-            glb_carrier="*"
-            ;;
-        --carrier-push)
-            glb_interaction="CARRIER_PUSH"
-            ;;
-        --carrier-pull)
-            glb_interaction="CARRIER_PULL"
-            ;;
-        --all-interactions)
             glb_interaction="*"
-            glb_service="*"
             glb_carrier="*"
             ;;
         --rating)
@@ -427,6 +416,17 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --all-services)
             glb_service="*"
+            glb_interaction="*"
+            glb_carrier="*"
+            ;;
+        --carrier-push)
+            glb_interaction="CARRIER_PUSH"
+            ;;
+        --carrier-pull)
+            glb_interaction="CARRIER_PULL"
+            ;;
+        --all-interactions)
+            glb_interaction="*"
             glb_carrier="*"
             ;;
         --scac)
@@ -1183,12 +1183,11 @@ build_full_gcp_url() {
     # Function logic
     local full_url=""
     full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
-    # flg_downloaded_playground=true
     if [[ $full_url == *'*'* ]]; then
-	    local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
-	    echo "$trimmed_url*"
-	else
-		echo "$full_url"
+        local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
+        echo "$trimmed_url"
+    else
+        echo "$full_url/"
     fi
 }
 
@@ -1566,7 +1565,7 @@ download_from_env() {
         local env_full_name=$(resolve_env_to_full_name "$env_name")
         echo "Info: Downloading '$env_full_name' GCP files."
         local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
-        download_from_url "$full_url/*" "$local_folder"
+        download_from_url "$full_url*" "$local_folder"
         if [ -z "$(ls -A "$local_folder")" ]; then
             rm -r "$local_folder"
             echo "Info: No files downloaded."
