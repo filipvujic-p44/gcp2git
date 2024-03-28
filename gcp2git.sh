@@ -1248,19 +1248,19 @@ download_from_gcp() {
 upload_file_to_gcp() {
     # Check arg count and npe, assign values
     check_args 2 "$@"
-    local filename=$1
+    local source=$1
     local gcp_url=$2
     # Requirement checks
-    # If not a file, exit
-    if [ ! -f "$filename" ]; then
-        echo "Error: Specified path '$filename' is not a valid file!" >&2
+    # If not a file or a folder, exit
+    if [ ! -f "$source" ] && [ ! -d "$source" ]; then
+        echo "Error: Specified path '$source' is not a valid source!" >&2
         exit 1
     fi
     # Function logic
-    if [ -d "$filename" ]; then
-        gsutil -q cp -r "$filename" "$gcp_url"
+    if [ -d "$source" ]; then
+        gsutil -q cp -r "$source" "$gcp_url"
     else
-        gsutil -q cp "$filename" "$gcp_url"
+        gsutil -q cp "$source" "$gcp_url"
     fi
 }
 
