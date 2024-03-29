@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.4"
+version="v1.1.5"
 author="Filip Vujic"
-last_updated="28-Mar-2024"
+last_updated="29-Mar-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -1181,13 +1181,16 @@ build_full_gcp_url() {
     local interaction=$4
     local carrier=$5
     # Function logic
-    local full_url=""
-    full_url="$base_gcp_url/$mode/$service/$interaction/$carrier"
+    local full_url="$base_gcp_url/"
+    if [ ! -z "$mode" ]; then full_url+="$mode/"; fi
+    if [ ! -z "$service" ]; then full_url+="$service/"; fi
+    if [ ! -z "$interaction" ]; then full_url+="$interaction/"; fi
+    if [ ! -z "$carrier" ]; then full_url+="$carrier/"; fi
     if [[ $full_url == *'*'* ]]; then
         local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
         echo "$trimmed_url"
     else
-        echo "$full_url/"
+        echo "$full_url"
     fi
 }
 
@@ -1401,7 +1404,7 @@ upload_to_pg() {
         if [ -f "$source_file" ]; then
             filename=$(basename "$source_file")
             if check_file_prefix "$filename"; then
-                cp "$filename" "$tmp_dir/$glb_carrier/"
+                cp "$source_file" "$tmp_dir/$glb_carrier/"
                 echo "Info: Processing $filename for upload."
             fi
         fi
@@ -1663,7 +1666,7 @@ fi
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
     check_for_updates
-    exit 0
+    # exit 0
 fi
 
 # Install
