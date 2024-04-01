@@ -1,15 +1,22 @@
 #!/bin/bash
-version="v1.0.30"
+version="v1.1.5"
 author="Filip Vujic"
-last_updated="25-Jan-2024"
+last_updated="29-Mar-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
+
+###################################### TO-DO ##############################################
+# - update from folder (or just resolve dir to dirname)
+# - compare all remotes
+###########################################################################################
+
 
 
 ###########################################################################################
 ###################################### Info and help ######################################
 ###########################################################################################
+
 
 
 # Help text
@@ -45,75 +52,77 @@ Installation:
 
 Options:
 --------
-    gcp2git.sh [-v | --version] [-h | --help] [--help-usage] [--help-gcloud-cli] 
+    gcp2git.sh [-v | --version] [-h | --help] [--help-actions-and-envs] [--help-gcloud-cli] 
                [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
-               [--generate-env-file] [--update-gitignore-file] [--compare] 
-               [--compare-lcl-and-pg] [--compare-lcl-and-int] [--compare-pg-and-int]
-               [--download-pg] [--download-int] 
-               [--update-lcl-from-pg] [--update-lcl-from-int] [--update-pg-from-lcl] 
-               [--update-pg-from-int] [--update-gh-from-pg] [--update-gh-from-int] 
-               [--update-all-from-int] [--ltl] [--tl] [--carrier-push] 
-               [--carrier-pull] [--rating] [--dispatch] [--tracking] [--imaging] 
-               [--scac <carrier_scac>] <carrier_scac>
+               [--generate-env-file] [--update-gitignore-file] 
+               [--compare] [--download] [--update] [--update-lcl-pg-gh] 
+               [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] 
+               [--all-interactions] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--all-services] [--scac <carrier_scac>] <carrier_scac> [--all-carriers]
 
 Options (details):
 ------------------
     general:
-        -v | --version                Display script version and author.
-        -h | --help                   Display help and usage info.
-        --help-usage                  Display usage info.
-        --help-gcloud-cli             Display GCloud CLI help.
-        --install                     Install script to use from anywhere in terminal.
-        --install-y                   Install with preapproved dependencies and run 'gcloud auth login' after installation.
-        --uninstall                   Remove changes made during install (except dependencies).
-        --chk-install                 Check if script and dependencies are installed correctly.
-        --chk-for-updates             Check for new script versions.
-        --auto-chk-for-updates-off    Turn off automatic check for updates (default state).
-        --auto-chk-for-updates-on     Turn on automatic check for updates (checks on every run).
-        --generate-env-file           Generate '.env_gcp2git' in current folder.
-        --update-gitignore-file       Update '.gitignore' file.
+        -v | --version                    Display script version and author.
+        -h | --help                       Display help and usage info.
+        --help-actions-and-envs           Display actions and environments info.
+        --help-gcloud-cli                 Display GCloud CLI help.
+        --install                         Install script to use from anywhere in terminal.
+        --install-y                       Install with preapproved dependencies and run 'gcloud auth login' after installation.
+        --uninstall                       Remove changes made during install (except dependencies).
+        --chk-install                     Check if script and dependencies are installed correctly.
+        --chk-for-updates                 Check for new script versions.
+        --auto-chk-for-updates-off        Turn off automatic check for updates (default state).
+        --auto-chk-for-updates-on         Turn on automatic check for updates (checks on every run).
+        --generate-env-file               Generate '.env_gcp2git' in current folder.
+        --update-gitignore-file           Update '.gitignore' file.
 
     actions:
-        --compare                     Compare files from two local folders.
-        --compare-lcl-and-pg          Download playground files and compare content with local files.
-        --compare-lcl-and-int         Download qa-int files and compare content with local files.
-        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
-        --download-pg                 Download remote playground files.
-        --download-int                Download remote qa-int files.
-        --update-lcl-from-pg          Update local files from GCP playground.
-        --update-lcl-from-int         Update local files from GCP qa-int.
-        --update-pg-from-lcl          Update GCP playground files from local.
-        --update-pg-from-int          Update GCP playground files from GCP qa-int.
-        --update-gh-from-pg           Update GitHub files from GCP playground.
-        --update-gh-from-int          Update GitHub files from GCP qa-int.
-        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+        --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --download <env>                  Download remote GCP files.
+        --update <env_from> <env_to>      Update files from-to environment.
+        --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
+
+    environment options:
+        lcl                               Current local folder.
+        gh                                Current GitHub repo.
+        pg                                GCP playground.
+        int                               GCP qa-integration.
+        stg                               GCP qa-stage.
+        sbx                               GCP sandbox.
+        eu                                GCP eu-production.
+        us                                GCP us-production.
 
     transportation-modes:
-        --ltl                         Set mode to 'LTL' (default value).
-        --tl                          Set mode to 'TL'.
+        --ltl                             Set mode to 'LTL' (default value).
+        --tl                              Set mode to 'TL'.
+        --all-modes                       Set mode to '*'.
         
-    interaction-types:
-        --carrier-push                Set interaction to 'CARRIER_PUSH'.
-        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
-
     service-types:
-        --rating                      Set service to 'RATING'.
-        --dispatch                    Set service to 'DISPATCH'.
-        --tracking                    Set service to 'SHIPMENT_STATUS'.
-        --imaging                     Set service to 'IMAGING'.
+        --rating                          Set service to 'RATING'.
+        --dispatch                        Set service to 'DISPATCH'.
+        --tracking                        Set service to 'SHIPMENT_STATUS'.
+        --imaging                         Set service to 'IMAGING'.
+        --all-services                    Set service to '*'.
+
+    interaction-types:
+        --carrier-push                    Set interaction to 'CARRIER_PUSH'.
+        --carrier-pull                    Set interaction to 'CARRIER_PULL' (default value).
+        --all-interactions                Set interaction to '*'.
 
     carrier:
-        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
+        --scac <carrier_scac>             Set carrier scac (case insensitive; can be set without using '--scac' flag).
+        --all-carriers                    Set carrier to '*'.
 
 Usage:
 ------
     gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
-    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh abfs --imaging --compare lcl us
     gcp2git.sh --generate-env-file
-    gcp2git.sh --tl --rating --download-pg gtjn
-    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+    gcp2git.sh --tl --rating --download int gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update lcl pg
+    gcp2git.sh --tracking --scac gtjn --update pg gh
 
 Notes:
 ------
@@ -125,52 +134,36 @@ EOL
 )
 
 # Modes text
-usage_text=$(cat <<EOL
-USAGE HELP:
+actions_and_envs_text=$(cat <<EOL
+ACTIONS AND ENVIRONMENTS HELP:
 -----------
 
 Options:
 --------
     actions:
-        --compare                     Compare files from two local folders.
-        --compare-lcl-and-pg          Download playground files and compare content with local files.
-        --compare-lcl-and-int         Download qa-int files and compare content with local files.
-        --compare-pg-and-int          Download playground and qa-int files and compare content of each file.
-        --download-pg                 Download remote playground files.
-        --download-int                Download remote qa-int files.
-        --update-lcl-from-pg          Update local files from GCP playground.
-        --update-lcl-from-int         Update local files from GCP qa-int.
-        --update-pg-from-lcl          Update GCP playground files from local.
-        --update-pg-from-int          Update GCP playground files from GCP qa-int.
-        --update-gh-from-pg           Update GitHub files from GCP playground.
-        --update-gh-from-int          Update GitHub files from GCP qa-int.
-        --update-all-from-int         Update local, GCP playground, and GitHub files from GCP qa-int.
+        --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --download <env>                  Download remote GCP files.
+        --update <env_from> <env_to>      Update files from-to environment.
+        --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
 
-    transportation-modes:
-        --ltl                         Set mode to 'LTL' (default value).
-        --tl                          Set mode to 'TL'.
-        
-    interaction-types:
-        --carrier-push                Set interaction to 'CARRIER_PUSH'.
-        --carrier-pull                Set interaction to 'CARRIER_PULL' (default value).
-
-    service-types:
-        --rating                      Set service to 'RATING'.
-        --dispatch                    Set service to 'DISPATCH'.
-        --tracking                    Set service to 'SHIPMENT_STATUS'.
-        --imaging                     Set service to 'IMAGING'.
-
-    carrier:
-        --scac <carrier_scac>         Set carrier scac (case insensitive; can be set without using '--scac' flag).
+    environment options:
+        lcl                               Current local folder.
+        gh                                Current GitHub repo.
+        pg                                GCP playground.
+        int                               GCP qa-integration.
+        stg                               GCP qa-stage.
+        sbx                               GCP sandbox.
+        eu                                GCP eu-production.
+        us                                GCP us-production.
 
 Usage:
 ------
     gcp2git.sh (general-option | [transportation-mode] [interaction-type] [--scac] scac service-type action)
-    gcp2git.sh abfs --imaging --compare-lcl-and-pg
+    gcp2git.sh abfs --imaging --compare lcl us
     gcp2git.sh --generate-env-file
-    gcp2git.sh --tl --rating --download-pg gtjn
-    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update-lcl-from-int
-    gcp2git.sh --tracking --scac gtjn --update-gh-from-pg
+    gcp2git.sh --tl --rating --download int gtjn
+    gcp2git.sh --carrier-pull --dispatch --scac EXLA --update lcl pg
+    gcp2git.sh --tracking --scac gtjn --update pg gh
 
 EOL
 )
@@ -208,9 +201,11 @@ EOL
 )
 
 
+
 ############################################################################################
 ###################################### Vars and flags ######################################
 ############################################################################################
+
 
 
 # Initialize variables to default values
@@ -222,26 +217,31 @@ do_chk_install_=false
 # ref_chk_for_updates (do not change comment)
 flg_chk_for_updates=false
 flg_generate_env_file=false
-flg_compare=false
-flg_compare_lcl_and_pg=false
-flg_compare_lcl_and_int=false
-flg_compare_pg_and_int=false
-flg_download_pg=false
-flg_download_qa_int=false
-flg_update_lcl_from_pg=false
-flg_update_lcl_from_qa_int=false
-flg_update_pg_from_lcl=false
-flg_update_pg_from_qa_int=false
-flg_update_gh_from_pg=false
-flg_update_gh_from_qa_int=false
-flg_update_all_from_qa_int=false
+
+flg_compare_from_to_env=false
+flg_download_from_env=false
+
+flg_downloaded_playground=false
+flg_downloaded_qa_int=false
+flg_downloaded_qa_stage=false
+flg_downloaded_sandbox=false
+flg_downloaded_eu_prod=false
+flg_downloaded_us_prod=false
+
+flg_update_from_to_env=false
+flg_update_lcl_pg_gh_from_env=false
 
 gcp_pg_base_url="gs://p44-datafeed-pipeline/qa-int/src"
 gcp_qa_int_base_url="gs://p44-integration-us-central1-data-feed-plan-definitions-int/qa-int/src"
-mode="LTL"
-interaction="CARRIER_PULL"
-service=""
-carrier=""
+gcp_qa_stage_base_url="gs://p44-staging-us-central1-data-feed-plan-definitions-staging/qa-stage/src"
+gcp_sandbox_base_url="gs://p44-sandbox-us-data-feed-plan-definitions/sandbox/src"
+gcp_eu_prod_base_url="gs://p44-production-eu-data-feed-plan-definitions/production-eu/src"
+gcp_us_prod_base_url="gs://data-feed-plan-definitions-prod-prod-us-central1-582378/production/src"
+
+glb_mode="LTL"
+glb_service=""
+glb_interaction="CARRIER_PULL"
+glb_carrier=""
 
 # Check if any args are passed to the script
 if [ ! -z "$1" ]; then
@@ -252,73 +252,6 @@ fi
 if [ -e ".env_gcp2git" ]; then
     flg_args_passed=true
     source .env_gcp2git
-
-    # Set actions from .env
-
-    # Load compare value
-    if [ ! -z "$COMPARE" ]; then
-        flg_compare="$COMPARE"
-    fi
-
-    # Load compare local and pg value
-    if [ ! -z "$COMPARE_LCL_AND_PG" ]; then
-        flg_compare_lcl_and_pg="$COMPARE_LCL_AND_PG"
-    fi
-
-    # Load compare local and int value
-    if [ ! -z "$COMPARE_LCL_AND_INT" ]; then
-        flg_compare_lcl_and_int="$COMPARE_LCL_AND_INT"
-    fi
-
-    # Load compare pg and int value
-    if [ ! -z "$COMPARE_PG_AND_INT" ]; then
-        flg_compare_pg_and_int="$COMPARE_PG_AND_INT"
-    fi
-
-    # Load download playground value
-    if [ ! -z "$DOWNLOAD_PG" ]; then
-        flg_download_pg="$DOWNLOAD_PG"
-    fi
-
-    # Load download qa int value
-    if [ ! -z "$DOWNLOAD_QA_INT" ]; then
-        flg_download_qa_int="$DOWNLOAD_QA_INT"
-    fi
-
-    # Load update local from playground value
-    if [ ! -z "$UPDATE_LCL_FROM_PG" ]; then
-        flg_update_lcl_from_pg="$UPDATE_LCL_FROM_PG"
-    fi
-
-    # Load update local from qa-int value
-    if [ ! -z "$UPDATE_LCL_FROM_QA_INT" ]; then
-        flg_update_lcl_from_qa_int="$UPDATE_LCL_FROM_QA_INT"
-    fi
-
-    # Load update playground from local value
-    if [ ! -z "$UPDATE_PG_FROM_LCL" ]; then
-        flg_update_pg_from_lcl="$UPDATE_PG_FROM_LCL"
-    fi
-
-    # Load update playground from qa-int value
-    if [ ! -z "$UPDATE_PG_FROM_QA_INT" ]; then
-        flg_update_pg_from_qa_int="$UPDATE_PG_FROM_QA_INT"
-    fi
-
-    # Load update github from playground value
-    if [ ! -z "$UPDATE_GH_FROM_PG" ]; then
-        flg_update_gh_from_pg="$UPDATE_GH_FROM_PG"
-    fi
-
-    # Load update github from qa-int value
-    if [ ! -z "$UPDATE_GH_FROM_QA_INT" ]; then
-        flg_update_gh_from_qa_int="$UPDATE_GH_FROM_QA_INT"
-    fi
-
-    # Load update all from qa-int value
-    if [ ! -z "$UPDATE_ALL_FROM_QA_INT" ]; then
-        flg_update_all_from_qa_int="$UPDATE_ALL_FROM_QA_INT"
-    fi
 
     # Set URLs from .env
 
@@ -332,30 +265,50 @@ if [ -e ".env_gcp2git" ]; then
         qa_int_base_url="$QA_INT_BASE_URL"
     fi
 
+        # Load sandbox base URL value
+    if [ ! -z "$QA_STAGE_BASE_URL" ]; then
+        qa_stage_base_url="$QA_STAGE_BASE_URL"
+    fi
+
+    # Load sandbox base URL value
+    if [ ! -z "$SANDBOX_BASE_URL" ]; then
+        sandbox_base_url="$SANDBOX_BASE_URL"
+    fi
+
+        # Load eu prod base URL value
+    if [ ! -z "$EU_PROD_BASE_URL" ]; then
+        eu_prod_base_url="$EU_PROD_BASE_URL"
+    fi
+
+    # Load us prod base URL value
+    if [ ! -z "$US_PROD_BASE_URL" ]; then
+        us_prod_base_url="$US_PROD_BASE_URL"
+    fi
+
     # Set integration details from .env
 
     # Load mode value
     if [ ! -z "$MODE" ]; then
-        mode="$MODE"
-    fi
-
-    # Load interaction value
-    if [ ! -z "$INTERACTION" ]; then
-        interaction="$INTERACTION"
+        glb_mode="$MODE"
     fi
 
     # Load service value
     if [ ! -z "$SERVICE" ]; then
-        service="$SERVICE"
+        glb_service="$SERVICE"
+    fi
+
+    # Load interaction value
+    if [ ! -z "$INTERACTION" ]; then
+        glb_interaction="$INTERACTION"
     fi
 
     # Load carrier value
     if [ ! -z "$SCAC" ]; then
-        carrier="$SCAC"
+        glb_carrier="$SCAC"
     fi
 fi
 
-while [ "$1" != "" ]; do
+while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
     case "$1" in
         -v | --version)
             echo "gcp2git version: $version"
@@ -368,8 +321,8 @@ while [ "$1" != "" ]; do
             echo "$help_text"
             exit 0
             ;;
-        --help-usage)
-            echo "$usage_text"
+        --help-actions-and-envs)
+            echo "$actions_and_envs_text"
             exit 0
             ;;
         --help-gcloud-cli)
@@ -416,116 +369,107 @@ while [ "$1" != "" ]; do
             flg_update_gitignore=true
             ;;
         --compare)
-            flg_compare=true
-            cmp_folder_1="${2}"
-            cmp_folder_2="${3}"
-            shift 3  # Shift by three positions to consume the flag and its two arguments
+            flg_compare_from_to_env=true
+            glb_compare_env_1="${2}"
+            glb_compare_env_2="${3}"
+            shift 2 # plus 1 after case block
             ;;
-        --compare-lcl-and-pg)
-            flg_compare_lcl_and_pg=true
+        --download)
+            flg_download_from_env=true
+            glb_download_env="${2}"
+            shift 1
             ;;
-        --compare-lcl-and-int)
-            flg_compare_lcl_and_int=true
+        --update)
+            flg_update_from_to_env=true
+            glb_update_from_env="${2}"
+            glb_update_to_env="${3}"
+            shift 2 # plus 1 after case block
             ;;
-        --compare-pg-and-int)
-            flg_compare_pg_and_int=true
-            ;;
-        --download-pg)
-            flg_download_pg=true
-            ;;
-        --download-int)
-            flg_download_qa_int=true
-            ;;
-        --update-lcl-from-pg)
-            flg_update_lcl_from_pg=true
-            ;;
-        --update-lcl-from-int)
-            flg_update_lcl_from_qa_int=true
-            ;;
-        --update-pg-from-lcl)
-            flg_update_pg_from_lcl=true
-            ;;
-        --update-pg-from-int)
-            flg_update_pg_from_qa_int=true
-            ;;
-        --update-gh-from-pg)
-            flg_update_gh_from_pg=true
-            ;;
-        --update-gh-from-int)
-            flg_update_gh_from_qa_int=true
-            ;;
-        --update-all-from-int)
-            flg_update_all_from_qa_int=true
+        --update-lcl-pg-gh)
+            flg_update_lcl_pg_gh_from_env=true
+            update_from_env="${2}"
+            shift 1 # plus 1 after case block
             ;;
         --ltl)
-            mode="LTL"
+            glb_mode="LTL"
             ;;
         --tl)
-            mode="TL"
+            glb_mode="TL"
             ;;
-        --carrier-push)
-            interaction="CARRIER_PUSH"
-            ;;
-        --carrier-pull)
-            interaction="CARRIER_PULL"
+        --all-modes)
+            glb_mode="*"
+            glb_service="*"
+            glb_interaction="*"
+            glb_carrier="*"
             ;;
         --rating)
-            service="RATING"
+            glb_service="RATING"
             ;;
         --dispatch)
-            service="DISPATCH"
+            glb_service="DISPATCH"
             ;;
         --tracking)
-            service="SHIPMENT_STATUS"
+            glb_service="SHIPMENT_STATUS"
             ;;
         --imaging)
-            service="IMAGING"
+            glb_service="IMAGING"
+            ;;
+        --all-services)
+            glb_service="*"
+            glb_interaction="*"
+            glb_carrier="*"
+            ;;
+        --carrier-push)
+            glb_interaction="CARRIER_PUSH"
+            ;;
+        --carrier-pull)
+            glb_interaction="CARRIER_PULL"
+            ;;
+        --all-interactions)
+            glb_interaction="*"
+            glb_carrier="*"
             ;;
         --scac)
-            carrier="${2^^}"
+            glb_carrier="${2^^}"
+            shift 2 # plus 1 after case block
+            ;;
+        --all-carriers)
+            glb_carrier="*"
             ;;
         *)
-            carrier="${1^^}"
+            glb_carrier="${1^^}"
             ;;
     esac
+    # Since this default shift exists, all flag handling shifts are decreased by 1
     shift
 done
 
-# Set local folder paths
-local_pg_folder="./downloaded_playground_${mode}_${interaction}_${service}_${carrier}"
-local_qa_int_folder="./downloaded_qa_int_${mode}_${interaction}_${service}_${carrier}"
-gcp_pg_upload_dir_url="$gcp_pg_base_url/$mode/$service/$interaction"
-gcp_pg_full_url="$gcp_pg_base_url/$mode/$service/$interaction/$carrier"
-gcp_qa_int_full_url="$gcp_qa_int_base_url/$mode/$service/$interaction/$carrier"
-
-# Set download-freshness flags
-flg_fresh_gcp_pg_download=false
-flg_fresh_gcp_qa_int_download=false
 
 
 ################################################################################################
-###################################### Dependency check functions ##############################
+###################################### Check functions #########################################
 ################################################################################################
+
 
 
 # Check if wget is installed
 check_wget_installed() {
-    command -v wget &> /dev/null
+    command -v wget &>/dev/null
 }
 
 # Check if GCloud CLI is installed
 check_gcloud_installed() {
-    command -v gcloud &> /dev/null
+    command -v gcloud &>/dev/null
 }
 
 # Check if python3 is installed
 check_python_installed() {
-    command -v python3 &> /dev/null
+    command -v python3 &>/dev/null
 }
 
 # Check if git is installed
 check_git_installed() {
-    command -v git &> /dev/null
+    command -v git &>/dev/null
 }
 
 check_bash_completion_installed() {
@@ -535,10 +479,268 @@ check_bash_completion_installed() {
     return 1
 }
 
+# Check if there is a new release on gcp2git GitHub repo
+check_for_updates() {
+    # Local script version
+    local local_version=$(echo "$version" | sed 's/^v//')
+    # Latest release text
+    local latest_text=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest")
+    # Latest remote version
+    local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
+    # Check if versions are different
+    local version_result=$(
+        awk -v v1="$local_version" -v v2="$remote_version" '
+            BEGIN {
+                if (v1 == v2) {
+                    result = 0;
+                    exit;
+                }
+                split(v1, a, ".");
+                split(v2, b, ".");
+                for (i = 1; i <= length(a); i++) {
+                    if (a[i] < b[i]) {
+                        result = 1;
+                        exit;
+                    } else if (a[i] > b[i]) {
+                        result = 2;
+                        exit;
+                    }
+                }
+                result = 0;
+                exit;
+            }
+            END {
+                print result
+            }'
+    )   
+    if [ "$version_result" -eq 0 ]; then
+        echo "Info: You already have the latest script version ($version)."
+    elif [ "$version_result" -eq 1 ]; then
+        local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
+        echo "Info: New version available (v$remote_version). Your version is (v$local_version)."
+        echo "Info: Release notes:"
+        echo "$release_notes"
+        echo "Info: Visit '$repo/releases' for more info."
+        echo "Q: Do you want to download and install updates? (Y/n):"
+        read do_update
+        if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
+            install_updates "$remote_version"
+        else
+            echo "Info: Update canceled."
+        fi
+    elif [ "$version_result" -eq 2 ]; then
+        echo "Info: You somehow have a version that hasn't been released yet ;)"
+        echo "Info: Latest release is (v$remote_version). Your version is (v$local_version)."
+    fi
+}
+
+# Check if all necessary changes are done during installation
+check_installation() {
+    local cnt_missing=0
+    if check_wget_installed; then
+        echo "Info: wget ------------------- OK."
+    else
+        echo "Error: wget ------------------ NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_gcloud_installed; then
+        echo "Info: gcloud ----------------- OK."
+    else
+        echo "Error: gcloud ---------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_python_installed; then
+        echo "Info: python3 ---------------- OK."
+    else
+        echo "Error: python3 --------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_git_installed; then
+        echo "Info: git -------------------- OK."
+    else
+        echo "Error: git ------------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_bash_completion_installed; then
+        echo "Info: bash-completion -------- OK."
+    else
+        echo "Error: bash-completion ------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+        
+    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
+        echo "Info: ~/gcp2git/ ------------- OK."
+    else
+        echo "Error: ~/gcp2git/ ------------ NOT OK."
+        ((cnt_missing++))
+    fi
+
+    if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
+        grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+        echo "Info: ~/.bashrc -------------- OK."
+    else
+        echo "Error: ~/.bashrc ------------- NOT OK."
+        ((cnt_missing++))
+    fi	
+
+    if [ "$cnt_missing" -gt "0" ]; then
+        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script." >&2
+        return 1
+    fi
+    return 0
+}
+
+# Check if the required number of args is passed to a function
+# $1 - required number of args
+# $2 - all passed args
+check_args() {
+        local parent_func="${FUNCNAME[1]}"
+        local required_number_of_args=$1
+        shift;
+        local total_number_of_args=$#
+        local args=$@
+        if [ $total_number_of_args == 0 ] || [ -z $total_number_of_args ]; then
+            echo "Error: No arguments provided!" >&2
+            return 1
+        fi
+        if [ $total_number_of_args -ne $required_number_of_args ]; then
+            echo "Error: Function '$parent_func' required $required_number_of_args arguments but $total_number_of_args provided!" >&2
+            return 1
+        fi
+}
+
+# Checks if a file starts with any of the prefixes.
+# $1 - local file name
+check_file_prefix() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local filename=$1
+    # Function logic
+    local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
+    for prefix in "${prefixes[@]}"; do
+        if [[ "$filename" == "$prefix"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Check if current directory is a git repo.
+check_is_git_repo() {
+    if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
+           return 0
+       else
+        return 1
+    fi
+}
+
+# Check all git requirements.
+check_git_repo_requirements() {
+    if ! check_git_installed; then
+        echo "Error: Git is not installed!" >&2
+        return 1
+    fi
+    if ! check_is_git_repo; then
+        echo "Error: Directory is not a git repo!" >&2
+        return 1
+    fi
+}
+
+# Check if carrier scac is provided
+check_carrier_set() {
+    if [ -z "$glb_carrier" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# Check if service name is provided
+check_service_set() {
+    if [ -z "$glb_service" ]; then
+        return 1
+    fi
+    return 0
+}
+
+# Check if all dependencies are installed
+check_dependencies() {
+    if ! check_wget_installed; then
+        echo "Info: Wget is not installed. Installing updates may not work properly."
+    fi
+
+    if ! check_gcloud_installed; then
+        echo "Info: GCloud CLI is not installed. You may not have access to GCP."
+    fi
+
+    if ! check_python_installed; then
+        echo "Info: Python is not installed. Comparing files may not work properly."
+    fi
+
+    if ! check_git_installed; then
+        echo "Info: Git is not installed. Syncing with GitHub may not work properly."
+    fi
+
+    if ! check_bash_completion_installed; then
+        echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
+    fi
+}
+
+# Check if carrier is set
+check_carrier_is_set() {
+    if ! check_carrier_set; then
+        echo "Error: No carrier scac provided!" >&2
+        exit 1
+    fi
+}
+
+# Check if service is set
+check_service_is_set() {
+    if ! check_service_set; then
+        echo "Error: No service name provided!" >&2
+        exit 1
+    fi
+}
+
+# Check if files have already been downloaded from passed environment in this runtime
+# $1 - environment name
+check_is_downloaded_from_env() {
+    local $env_name=$1
+    case "$env_name" in
+            "pg")
+                echo "$flg_fresh_gcp_pg_download"
+                ;;
+            "int")
+                echo "$flg_fresh_gcp_qa_int_download"
+                ;;
+            "stg")
+                echo "$flg_fresh_gcp_qa_stage_download"
+                ;;
+            "sbx")
+                echo "$flg_fresh_gcp_sandbox_download"
+                ;;
+            "eu")
+                echo "$flg_fresh_gcp_eu_prod_download"
+                ;;
+            "us")
+                echo "$flg_fresh_gcp_us_prod_download"
+                ;;
+            *)
+                echo "Error: GCP environment '$env_name' not recognized!" >&2
+                return 1
+                ;;
+        esac
+}
+
+
 
 #################################################################################################
 ###################################### Install / Uninstall functions ############################
 #################################################################################################
+
 
 
 # Main installation function
@@ -578,9 +780,6 @@ install_script() {
     echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
     echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
     echo "Info: Paths added to '~/.bashrc'."
-    # Export path and refresh source
-    #export PATH=$PATH:~/gcp2git/main
-    #source ~/gcp2git/util/gcp2git_autocomplete.sh
     # Print success message
     echo "Info: Success. Script installed in '~/gcp2git/' folder."
     # If '--install-y' was used, set up gcloud auth
@@ -593,24 +792,14 @@ install_script() {
             echo "Info: Logged in to GCloud CLI."
             echo "Info: Use '--help-gcloud-cli' for more info."
         else
-            echo "Error: Something went wrong during GCloud CLI login attempt."
+            echo "Error: Something went wrong during GCloud CLI login attempt." >&2
         fi
     else
         echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
         echo "Info: Use 'gcloud auth list' to check if you are logged in."
         echo "Info: Use '--help-gcloud-cli' for more info."
     fi
-    #echo "Info: Log in again to apply changes."
-    #echo "Info: If on wsl, do 'wsl --shutdown' and reopen in 10s)."
     echo "Info: Run 'source ~/.bashrc' to apply changes in current session."
-    # echo "Q: Run 'exec bash' to reload current session (will erase session's command history)? (y/N):"
-    # read run_reload
-    # if [ "${run_reload,,}" == "y" ]; then
-        # exec bash
-        # #echo "Info: Reloaded session."
-    # else
-        # echo "Info: You can run 'source ~/.bashrc' to apply changes manually."
-    # fi
     echo "Info: Local file './gcp2git.sh' is no longer needed."
     echo "Info: Use '-h' or '--help' to get started."
     exit 0
@@ -647,12 +836,12 @@ install_gcloud() {
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
         # Update and install the GCloud CLI:
         sudo apt update && sudo apt install google-cloud-cli
-        if command -v gcloud &> /dev/null; then
+        if command -v gcloud &>/dev/null; then
             echo "Info: GCloud CLI installed."
             echo "Info: Use 'gcloud auth login my.email@project44.com' to login to GCloud CLI."
             echo "Info: Use 'gcloud auth list' to check if you are logged in."
         else
-            echo "Error: Something went wrong during installation. Consider using '--help-gcloud-cli' option and run the steps manually."
+            echo "Error: Something went wrong during installation. Consider using '--help-gcloud-cli' option and run the steps manually." >&2
             exit 1
         fi
     else
@@ -753,7 +942,7 @@ uninstall_script() {
 # $1 - remote version
 install_updates() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local remote_version=$1
     # Function logic
     update_url="https://github.com/$repo_owner/$repo_name/archive/refs/tags/v$remote_version.tar.gz"
@@ -786,15 +975,33 @@ autocomplete() {
     _init_completion || return
 
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
-    options+="--help -h --help-gcloud-cli --help-usage --install --install-y --uninstall --chk-install --generate-env-file "
-    options+="--update-gitignore-file --compare --compare-lcl-and-pg --compare-lcl-and-int --compare-pg-and-int "
-    options+="--download-pg --download-int --update-lcl-from-pg --update-lcl-from-int --update-pg-from-lcl "
-    options+="--update-pg-from-int --update-gh-from-pg --update-gh-from-int --update-all-from-int "
-    options+="--ltl --tl --carrier-push --carrier-pull --rating --dispatch --tracking --imaging --scac"
+    options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall "
+    options+="--chk-install --generate-env-file --update-gitignore-file "
+    options+="--compare --download --update --update-lcl-pg-gh "
+    options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions "
+    options+="--rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
 
-    # Check if --compare is present in the command line arguments
     if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
-        COMPREPLY=(\$(compgen -o plusdirs -o nospace -W "\$(_filedir)" -- "\${cur}"))
+        local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
+        local folder_options=\$(compgen -o plusdirs -- "\${cur}")
+        local combined_options=("\${env_options[@]}" "\${folder_options[@]}")
+        COMPREPLY=(\$(compgen -W "\${combined_options[*]}" -- "\${cur}"))
+    elif [[ "\${COMP_WORDS[@]} " =~ " --download " ]]; then
+        local env_options=("pg" "int" "stg" "sbx" "eu" "us")
+        COMPREPLY=(\$(compgen -W "\${env_options[*]}" -- "\${cur}"))
+    elif [[ "\${COMP_WORDS[*]}" =~ " --update " ]]; then
+        local first_param=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
+        local second_param=("lcl" "pg" "gh")
+        case "\${COMP_WORDS[\${#COMP_WORDS[@]}-2]}" in
+            *lcl*|*pg*|*int*|*stg*|*sbx*|*eu*|*us*)
+                COMPREPLY=(\$(compgen -W "\${second_param[*]}" -- "\${cur}"))
+                ;;
+            *)
+                COMPREPLY=(\$(compgen -W "\${first_param[*]}" -- "\${cur}"))
+                ;;
+        esac
+    elif [[ "\${COMP_WORDS[@]} " =~ " --update-lcl-pg-gh " ]]; then
+            COMPREPLY=("int" "stg" "sbx" "eu" "us")
     else
         COMPREPLY=(\$(compgen -W "\$options" -- "\${cur}"))
     fi
@@ -823,33 +1030,21 @@ generate_env_file() {
 # last_updated="$last_updated"
 # github="$repo"
 
-# Fields can be overridden by flags
-
-# ACTIONS
-COMPARE=false
-COMPARE_LCL_AND_PG=false
-COMPARE_LCL_AND_INT=false
-COMPARE_PG_AND_INT=false
-DOWNLOAD_PG=false
-DOWNLOAD_QA_INT=false
-UPDATE_LCL_FROM_PG=false
-UPDATE_LCL_FROM_QA_INT=false
-UPDATE_PG_FROM_LCL=false
-UPDATE_PG_FROM_QA_INT=false
-UPDATE_GH_FROM_PG=false
-UPDATE_GH_FROM_QA_INT=false
-UPDATE_ALL_FROM_QA_INT=false
-
 # URLS (defaults: already set)
 PLAYGROUND_BASE_URL=""
 QA_INT_BASE_URL=""
+QA_STAGE_BASE_URL=""
+SANDBOX_BASE_URL=""
+EU_PROD_BASE_URL=""
+US_PROD_BASE_URL=""
 
 # INTEGRATION DETAILS (defaults: MODE=LTL, INTERACTION=CARRIER_PULL)
-# Modes  = [ LTL, TL ]
+# Fields can be overridden by flags
+# Modes  = [ LTL, TL, *]
 MODE=""
-# Interactions = [ CARRIER_PULL, CARRIER_PUSH  ]
+# Interactions = [ CARRIER_PULL, CARRIER_PUSH, *  ]
 INTERACTION=""
-# Services = [ RATING, DISPATCH, TRACKING, IMAGING ]
+# Services = [ RATING, DISPATCH, TRACKING, IMAGING, * ]
 SERVICE="MY_SERVICE"
 # Carrier scac
 SCAC="MY_SCAC"
@@ -860,267 +1055,205 @@ EOL
 }
 
 
-#####################################################################################################
-###################################### General check functions ######################################
-#####################################################################################################
+
+###############################################################################################
+###################################### Helper functions ######################################
+###############################################################################################
 
 
-# Check if there is a new release on gcp2git GitHub repo
-check_for_updates() {
-    # Local script version
-    local local_version=$(echo "$version" | sed 's/^v//')
-    # Latest release text
-    local latest_text=$(curl -s "https://api.github.com/repos/$repo_owner/$repo_name/releases/latest")
-    # Latest remote version
-    local remote_version=$(echo "$latest_text" | grep "tag_name" | sed 's/.*"v\([0-9.]*\)".*/\1/' | cat)
-    # Check if versions are different
-    local version_result=$(
-        awk -v v1="$local_version" -v v2="$remote_version" '
-            BEGIN {
-                if (v1 == v2) {
-                    result = 0;
-                    exit;
-                }
-                split(v1, a, ".");
-                split(v2, b, ".");
-                for (i = 1; i <= length(a); i++) {
-                    if (a[i] < b[i]) {
-                        result = 1;
-                        exit;
-                    } else if (a[i] > b[i]) {
-                        result = 2;
-                        exit;
-                    }
-                }
-                result = 0;
-                exit;
-            }
-            END {
-                print result
-            }'
-    )   
-    
-    if [ "$version_result" -eq 0 ]; then
-        echo "Info: You already have the latest script version ($version)."
-    elif [ "$version_result" -eq 1 ]; then
-        local release_notes=$(echo "$latest_text" | grep "body" | sed -n 's/.*"body": "\([^"]*\)".*/\1/p' | sed 's/\\r\\n/\n/g' | cat)
-        echo "Info: New version available (v$remote_version). Your version is (v$local_version)."
-        echo "Info: Release notes:"
-        echo "$release_notes"
-        echo "Info: Visit '$repo/releases' for more info."
-        echo "Q: Do you want to download and install updates? (Y/n):"
-        read do_update
-        if [ "${do_update,,}" == "y" ] || [ -z "$do_update" ]; then
-            install_updates "$remote_version"
-        else
-            echo "Info: Update canceled."
-        fi
-    elif [ "$version_result" -eq 2 ]; then
-        echo "Info: You somehow have a version that hasn't been released yet ;)"
-        echo "Info: Latest release is (v$remote_version). Your version is (v$local_version)."
-    fi
-}
 
-# Check if all necessary changes are done during installation
-check_installation() {
-    local cnt_missing=0
-    if check_wget_installed; then
-        echo "Info: wget ------------------- OK."
-    else
-        echo "Error: wget ------------------ NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_gcloud_installed; then
-        echo "Info: gcloud ----------------- OK."
-    else
-        echo "Error: gcloud ---------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_python_installed; then
-        echo "Info: python3 ---------------- OK."
-    else
-        echo "Error: python3 --------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_git_installed; then
-        echo "Info: git -------------------- OK."
-    else
-        echo "Error: git ------------------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-
-    if check_bash_completion_installed; then
-        echo "Info: bash-completion -------- OK."
-    else
-        echo "Error: bash-completion ------- NOT FOUND."
-        ((cnt_missing++))
-    fi
-        
-    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
-        echo "Info: ~/gcp2git/ ------------- OK."
-    else
-        echo "Error: ~/gcp2git/ ------------ NOT OK."
-        ((cnt_missing++))
-    fi
-
-    if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
-        grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
-        echo "Info: ~/.bashrc -------------- OK."
-    else
-        echo "Error: ~/.bashrc ------------- NOT OK."
-        ((cnt_missing++))
-    fi	
-
-    if [ "$cnt_missing" -gt "0" ]; then
-        echo "Error: Problems found. Use '--install' or '--install-y' to (re)install the script."
-        return 1
-    fi
-    return 0
-}
-
-# Check if the required number of args is passed to a function
-# $1 - required number of args
-# $2 - all passed args
-check_args() {
-        local required_number_of_args=$1
-        shift;
-        local total_number_of_args=$#
-        local args=$@
-        if [ $total_number_of_args -ne $required_number_of_args ]; then
-            echo "Error: Required $number_of_args arguments!"
-            exit 1
-        fi
-        for arg in $args; do
-            if [ -z "$arg" ]; then
-                    echo "Error: Argument cannot be null or empty!"
-            exit 1
-            fi
-        done
-}
-
-# Checks if a file starts with any of the prefixes.
-# $1 - local file name
-check_file_prefix() {
+# Return full environment name based on passed short name
+# $1 - environment short name
+resolve_env_to_full_name() {
     # Check arg count and npe, assign values
-    check_args 1 $@
-    local filename=$1
+    check_args 1 "$@"
+    local env_name=$1
     # Function logic
-    local prefixes=("dataFeedPlan" "valueTranslations" "controlTemplate" "headerTemplate" "uriTemplate" "requestBodyTemplate" "responseBodyTemplate")
-    for prefix in "${prefixes[@]}"; do
-        if [[ "$filename" == "$prefix"* ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-# Check if current directory is a git repo.
-check_is_git_repo() {
-    if [ -d ".git" ] && [ "$(git rev-parse --is-inside-work-tree)" == "true" ]; then
-           return 0
-       else
+    result=""
+    case "$env_name" in
+        "lcl" | "." | "./")
+            result="."
+            ;;
+        "pg")
+            result="playground"
+            ;;
+        "int")
+            result="qa_int"
+            ;;
+        "stg")
+            result="qa_stage"
+            ;;
+        "sbx")
+            result="sandbox" 
+            ;;
+        "eu")
+            result="eu_prod"
+            ;;
+        "us")
+            result="us_prod"
+            ;;
+        *)
+            :
+            ;;
+    esac
+    if [ -z "$result" ]; then
+        echo "Error: Environment '$env_name' not recognized!" >&2
         return 1
+    else
+        echo "$result"
     fi
 }
 
-# Check all git requirements.
-check_git_repo_requirements() {
-    if ! check_git_installed; then
-        echo "Error: Git is not installed!"
-        exit 1
+# Return corresponding GCP base url based on passed environment name
+# $1 - environment name
+build_local_folder_name_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local env_name=$1
+    # Function logic
+    local prefix=""
+    if [ "$flg_download_from_env" == "true" ]; then
+        prefix="downloaded_gcp2git"
+    else
+        prefix="tmp_gcp2git"
     fi
-    if ! check_is_git_repo; then
-        echo "Error: Directory is not a git repo!"
-        exit 1
+    if [ "$env_name" == "lcl" ]; then
+        echo "."
+    else
+        local full_env_name=$(resolve_env_to_full_name "$env_name")
+        local full_name="./${prefix}_${full_env_name}_${glb_mode}_${glb_interaction}_${glb_service}_${glb_carrier}"
+        echo "$full_name" | sed 's/_\*.*//'
     fi
 }
 
-# Check if carrier scac is provided
-check_carrier_set() {
-    if [ -z "$carrier" ]; then
+
+# Return corresponding GCP base url based on passed environment name
+# $1 - environment name
+resolve_env_to_gcp_base_url() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local env_name=$1
+    # Function logic
+    result=""
+    case "$env_name" in
+        "pg")
+            result="$gcp_pg_base_url"
+            ;;
+        "int")
+            result="$gcp_qa_int_base_url"
+            ;;
+        "stg")
+            result="$gcp_qa_stage_base_url" 
+            ;;
+        "sbx")
+            result="$gcp_sandbox_base_url" 
+            ;;
+        "eu")
+            result="$gcp_eu_prod_base_url" 
+            ;;
+        "us")
+            result="$gcp_us_prod_base_url" 
+            ;;
+        *)
+            :
+            ;;
+    esac
+    if [ -z "$result" ]; then
+        echo "Error: Environment '$env_name' not recognized!" >&2
         return 1
-    fi
-    return 0
-}
-
-# Check if service name is provided
-check_service_set() {
-    if [ -z "$service" ]; then
-        return 1
-    fi
-    return 0
-}
-
-# Check if all dependencies are installed
-check_dependencies() {
-    if ! check_wget_installed; then
-        echo "Info: Wget is not installed. Installing updates may not work properly."
-    fi
-
-    if ! check_gcloud_installed; then
-        echo "Info: GCloud CLI is not installed. You may not have access to GCP."
-    fi
-
-    if ! check_python_installed; then
-        echo "Info: Python is not installed. Comparing files may not work properly."
-    fi
-
-    if ! check_git_installed; then
-        echo "Info: Git is not installed. Syncing with GitHub may not work properly."
-    fi
-
-    if ! check_bash_completion_installed; then
-        echo "Info: Bash-completion is not installed. It is not required, but you won't have command completion."
+    else
+        echo "$result"
     fi
 }
 
-# Check requirements before calling any action
-check_action_requirements() {
-    if ! check_carrier_set; then
-        echo "Error: No carrier scac provided!"
+# Build GCP url from passed values.
+# $1 - base GCP bucket url
+# $2 - mode
+# $3 - service
+# $4 - interaction
+# $5 - carrier
+build_full_gcp_url() {
+    # Check arg count and npe, assign values
+    check_args 5 "$@"
+    local base_gcp_url=$1
+    local mode=$2
+    local service=$3
+    local interaction=$4
+    local carrier=$5
+    # Function logic
+    local full_url="$base_gcp_url/"
+    if [ ! -z "$mode" ]; then full_url+="$mode/"; fi
+    if [ ! -z "$service" ]; then full_url+="$service/"; fi
+    if [ ! -z "$interaction" ]; then full_url+="$interaction/"; fi
+    if [ ! -z "$carrier" ]; then full_url+="$carrier/"; fi
+    if [[ $full_url == *'*'* ]]; then
+        local trimmed_url="$(echo "$full_url" | sed 's/\*.*//')"
+        echo "$trimmed_url"
+    else
+        echo "$full_url"
+    fi
+}
+
+# Download files into specified folder from given url
+# $1 - source full GCP url
+# $2 - target local folder
+download_from_url() {
+    # Check arg count and npe, assign values
+    check_args 2 "$@"
+    local gcp_full_url=$1
+    local local_folder=$2
+    # Function logic
+    if [ -d "$local_folder" ]; then
+        rm -r "$local_folder"
+        mkdir "$local_folder"
+    else
+        mkdir "$local_folder"
+    fi
+    # If not a directory, exit
+    if [ ! -d "$local_folder" ]; then
+        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
         exit 1
     fi
-    
-    if ! check_service_set; then
-        echo "Error: No service name provided!"
-        exit 1
-    fi
+    download_from_gcp "$gcp_full_url" "$local_folder"
 }
-
-
-###############################################################################################
-###################################### Utility functions ######################################
-###############################################################################################
-
 
 # Downloads files from GCP.
-# $1 - gcp url (environment)
+# $1 - GCP url (environment)
 # $2 - local target folder
 download_from_gcp() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local gcp_url=$1
     local local_folder=$2
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$local_folder" ]; then
+        echo "Error: Specified path '$local_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
     gsutil -q -m cp -r "$gcp_url" "$local_folder"
 }
 
 # Uploads files to GCP.
 # $1 - local file name
-# $2 - gcp url (environment)
+# $2 - GCP url (environment)
 upload_file_to_gcp() {
     # Check arg count and npe, assign values
-    check_args 2 $@
-    local filename=$1
+    check_args 2 "$@"
+    local source=$1
     local gcp_url=$2
+    # Requirement checks
+    # If not a file or a folder, exit
+    if [ ! -f "$source" ] && [ ! -d "$source" ]; then
+        echo "Error: Specified path '$source' is not a valid source!" >&2
+        exit 1
+    fi
     # Function logic
-    if [ -d "$filename" ]; then
-        gsutil -q cp -r "$filename" "$gcp_url"
+    if [ -d "$source" ]; then
+        gsutil -q cp -r "$source" "$gcp_url"
     else
-        gsutil -q cp "$filename" "$gcp_url"
+        gsutil -q cp "$source" "$gcp_url"
     fi
 }
 
@@ -1129,10 +1262,21 @@ upload_file_to_gcp() {
 # $2 - target folder to search for files and check content
 compare_files() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local source_folder=$1
     local target_folder=$2
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
+    if [ ! -d "$target_folder" ]; then
+        echo "Error: Specified path '$target_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
+    echo "Info: Comparing folders '$source_folder' and '$target_folder'."
     local diffCount=0;
     for source_file in "$source_folder"/*; do
         # Check if it's a file
@@ -1143,14 +1287,14 @@ compare_files() {
                 target_folder_file_path="$target_folder/$filename"
                 # Check if target file exists
                 if [ ! -f "$target_folder_file_path" ]; then
-                    echo "Error: File $target_folder_file_path doesn't exist!"
+                    echo "Error: File $target_folder_file_path doesn't exist!" >&2
                     ((diffCount++))
                 # If it exists, compare files
-                elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" > /dev/null; then
+                elif cmp -s "$source_file" "$target_folder_file_path" || diff -q "$source_file" "$target_folder_file_path" &>/dev/null; then
                     :
                 # If files are .json type, try to fix the formatting
                 elif [[ "$source_file" == *.json ]] &&
-                    diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &> /dev/null; then
+                    diff <(cat "$source_file" | python3 -m json.tool) <(cat "$target_folder_file_path" | python3 -m json.tool) &>/dev/null; then
                     echo "Info: File '$filename' has matching content, but different formatting."
                     ((diffCount++))
                 else
@@ -1165,7 +1309,6 @@ compare_files() {
                         # Print lines that the remote file contains, but your local one doesn't
                         echo "Info: File content: '$target_folder_file_path':"
                         grep -nFxvf "$source_file" "$target_folder_file_path"
-                        
                     fi
                     ((diffCount++))
                 fi
@@ -1186,10 +1329,16 @@ compare_files() {
 # $2 - destination folder containing files that will get updated
 update_file_content() {
     # Check arg count and npe, assign values
-    check_args 2 $@
+    check_args 2 "$@"
     local source_folder=$1
     local destination_folder=$2
     # Function logic
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Loop through the files in the source folder
     for source_file in "$source_folder"/*; do
         # Check if it's a file
@@ -1219,37 +1368,50 @@ update_file_content() {
 # $1 - source folder with new files
 update_local_from_source() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local source_folder=$1
     local destination_folder="."
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
-    echo "Info: Updating files in '$destination_folder' using '$source_folder' files."
-    update_file_content $source_folder $destination_folder
+    update_file_content "$source_folder" "$destination_folder"
 }
 
 # Uploads files to GCP playground.
 # $1 - source folder containing files to be uploaded
 upload_to_pg() {
     # Check arg count and npe, assign values
-    check_args 1 $@
+    check_args 1 "$@"
     local source_folder=$1
+    # Requirement checks
+    # If not a directory, exit
+    if [ ! -d "$source_folder" ]; then
+        echo "Error: Specified path '$source_folder' is not a valid directory!" >&2
+        exit 1
+    fi
     # Function logic
-    local tmp_dir="./tmp_$carrier"
+    local tmp_dir="./tmp_$glb_carrier"
     if [ -d "$tmp_dir" ]; then
         rm -rf "$tmp_dir"
     fi
     mkdir "$tmp_dir"
-    mkdir "$tmp_dir/$carrier"
+    mkdir "$tmp_dir/$glb_carrier"
     for source_file in "$source_folder"/*; do
         if [ -f "$source_file" ]; then
             filename=$(basename "$source_file")
             if check_file_prefix "$filename"; then
-                cp "$filename" "$tmp_dir/$carrier/"
+                cp "$source_file" "$tmp_dir/$glb_carrier/"
                 echo "Info: Processing $filename for upload."
             fi
         fi
     done
-    upload_file_to_gcp "$tmp_dir/$carrier" "$gcp_pg_upload_dir_url"
+    local gcp_pg_base_url=$(resolve_env_to_gcp_base_url "pg")
+    local gcp_pg_upload_url=$(build_full_gcp_url "$gcp_pg_base_url" "$glb_mode" "$glb_service" "$glb_interaction" "")
+    upload_file_to_gcp "$tmp_dir/$glb_carrier" "$gcp_pg_upload_url"
     echo "Info: Uploaded files to GCP playground"
     rm -rf "$tmp_dir"
 }
@@ -1321,122 +1483,171 @@ commit_git() {
 }
 
 
+
 ###################################################################################################
 ###################################### Implemented action functions ###############################
 ###################################################################################################
 
 
-# Compare files from two local folders
-compare_local() {
-    if [ -z "$cmp_folder_1" ]; then cmp_folder_1="."; fi
-    if [ -z "$cmp_folder_2" ]; then cmp_folder_2="."; fi
-    echo "Info: Comparing folders '$cmp_folder_1' and '$cmp_folder_2'."
-    compare_files "$cmp_folder_1" "$cmp_folder_2"
-}
 
-# Compare local and playground files
-compare_lcl_and_pg() {
-    download_from_pg
-    compare_files "." $local_pg_folder
-}
-
-# Compare local and qa-int files
-compare_lcl_and_qa_int() {
-    download_from_qa_int
-    compare_files "." $local_qa_int_folder
-}
-
-# Compare playground and qa-int files
-compare_pg_and_qa_int() {
-    download_from_pg
-    download_from_qa_int
-    compare_files $local_pg_folder $local_qa_int_folder
-}
-
-# Download files from GCP playground
-download_from_pg() {
-    echo "Info: Downloading GCP playground files."
-    if [ -d "$local_pg_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
-        rm -r "$local_pg_folder"
-        mkdir "$local_pg_folder"
-    else
-        mkdir "$local_pg_folder"
+# Compare files from two local/remote folders
+# $1 - first environment for comparison
+# $2 - second environment for comparison
+compare_envs() {
+    # Check arg count and npe, assign values
+    check_args 2 "$@"
+    local env_1=$1
+    local env_2=$2
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
+    # If param is not a dir, but also env name not resolved, exit
+    if [ ! -d "$env_1" ] && ! resolve_env_to_full_name "$env_1" >/dev/null; then
+        exit 1
     fi
-    if [ "$carrier" == "*" ]; then
-        download_from_gcp "$gcp_pg_full_url" "$local_pg_folder"
-    else
-        download_from_gcp "$gcp_pg_full_url/*" "$local_pg_folder"
+    if [ ! -d "$env_2" ] && ! resolve_env_to_full_name "$env_2" >/dev/null; then
+        exit 1
     fi
-    flg_fresh_gcp_pg_download=true
-}
-
-# Download files from GCP qa-int
-download_from_qa_int() {
-    echo "Info: Downloading GCP qa-int files."
-    if [ -d "$local_qa_int_folder" ] && [ "$flg_fresh_gcp_pg_download" != "true" ]; then
-        rm -r "$local_qa_int_folder"
-        mkdir "$local_qa_int_folder"
-    else
-        mkdir "$local_qa_int_folder"
+        # If envs are same value, exit
+    if [ "$env_1" == "$env_2" ]; then
+        echo "Error: Same value '$env_1' provided for source and target folder/environment!" >&2
+        exit 1
     fi
-    if [ "$carrier" == "*" ]; then
-        download_from_gcp "$gcp_qa_int_full_url" "$local_qa_int_folder"
-    else
-        download_from_gcp "$gcp_qa_int_full_url/*" "$local_qa_int_folder"
+    # Function logic
+    local env_1_full_name="$env_1"
+    local env_2_full_name="$env_2"
+    if [ ! -d "$env_1" ]; then
+        env_1_full_name=$(resolve_env_to_full_name "$env_1")
     fi
-    flg_fresh_gcp_qa_int_download=true
+    if [ ! -d "$env_2" ]; then
+        env_2_full_name=$(resolve_env_to_full_name "$env_2")
+    fi
+    echo "Info: Comparing '$env_1_full_name' and '$env_2_full_name'."
+    if [ ! -d "$env_1" ]; then
+        local local_folder_1=$(build_local_folder_name_from_env "$env_1")
+        if [ "$local_folder_1" != "." ]; then
+            download_from_env "$env_1"
+        fi
+    else
+        local_folder_1="$env_1"
+    fi
+    if [ ! -d "$env_2" ]; then
+        local local_folder_2=$(build_local_folder_name_from_env "$env_2")
+        if [ "$local_folder_2" != "." ]; then
+            download_from_env "$env_2"
+        fi
+    else
+        local_folder_2="$env_2"
+    fi
+    compare_files "$local_folder_1" "$local_folder_2"
 }
 
-# Update local files from GCP playground
-update_local_from_pg() {
-    download_from_pg
-    update_local_from_source "$local_pg_folder"
+# Download from any env
+# $1 - source environment to download from
+download_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local env_name=$1
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
+    # If env lcl is passed, exit
+    if [ "$env_name" = "lcl" ] || [ "$env_name" = "." ] || [ "$env_name" = "./" ]; then
+        echo "Error: Must specify a remote environment!" >&2
+        exit 1
+    fi
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$env_name" >/dev/null; then
+        exit 1
+    fi
+    # Function logic
+    local download_freshness=$(check_is_downloaded_from_env "$env_name")
+    if [ "$download_freshness" != "true" ]; then
+        local local_folder=$(build_local_folder_name_from_env "$env_name")
+        local base_url=$(resolve_env_to_gcp_base_url "$env_name")
+        local env_full_name=$(resolve_env_to_full_name "$env_name")
+        echo "Info: Downloading '$env_full_name' GCP files."
+        local full_url=$(build_full_gcp_url "$base_url" "$glb_mode" "$glb_service" "$glb_interaction" "$glb_carrier")
+        download_from_url "$full_url*" "$local_folder"
+        if [ -z "$(ls -A "$local_folder")" ]; then
+            rm -r "$local_folder"
+            echo "Info: No files downloaded."
+        fi 
+    fi
 }
 
-# Update local files from GCP qa-int
-update_local_from_qa_int() {
-    download_from_qa_int
-    update_local_from_source "$local_qa_int_folder"
+# Update files from/to environment
+# $1 - source environment to copy files from
+# $2 - target environment to update files
+update_from_to_env() {
+    # Check arg count and npe, assign values
+    check_args 2 "$@"
+    local update_from_env=$1
+    local update_to_env=$2
+    local from_folder=""
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$update_from_env" >/dev/null || ! resolve_env_to_full_name "$update_to_env" >/dev/null; then
+        exit 1
+    fi
+    # Function logic
+    if [ "$update_from_env" == "$update_to_env" ]; then
+        echo "Error: Same value '$update_from_env' provided for source and target environment!" >&2
+        exit 1
+    fi
+    local env_from_full_name=$(resolve_env_to_full_name "$update_from_env")
+    local env_to_full_name=$(resolve_env_to_full_name "$update_to_env")
+    echo "Info: Updating '$env_to_full_name' files using '$env_from_full_name' as source."
+    from_folder=$(build_local_folder_name_from_env "$update_from_env")
+    if [ "$from_folder" != "." ]; then
+        download_from_env "$update_from_env"
+    fi
+    case "$update_to_env" in
+        "lcl")
+            update_local_from_source "$from_folder"
+            ;;
+        "pg")
+            upload_to_pg "$from_folder"
+            ;;
+        "gh")
+            update_local_from_source "$from_folder"
+            update_gitignore
+            commit_git
+            ;;
+        *)
+            :
+            ;;
+    esac
 }
 
-# Update GCP playground files from local
-update_pg_from_local() {
-    upload_to_pg "."
-}
-
-# Update GCP playground files from GCP qa-int
-update_pg_from_qa_int() {
-    download_from_qa_int
-    upload_to_pg "$local_qa_int_folder"
-}
-
-# Update GitHub files from GCP playground
-update_github_from_pg() {
-    download_from_pg
-    update_local_from_source "$local_pg_folder"
-    update_github
-}
-
-# Update GitHub files from GCP qa-int
-update_github_from_qa_int() {
-    download_from_qa_int
-    update_local_from_source "$local_qa_int_folder"
-    update_github
-}
-
-# Update local, GitHub and GCP playground files from GCP qa-int
-update_all_from_qa_int() {
-    download_from_qa_int
-    upload_to_pg "$local_qa_int_folder"
-    update_local_from_source "$local_qa_int_folder"
-    update_github
-}
-
-# Updates/creates .gitignore file and commits changes
-update_github() {
+# Update local, playground and GitHub files from given environment
+# $1 - source environment to copy files from 
+update_lcl_pg_gh_from_env() {
+    # Check arg count and npe, assign values
+    check_args 1 "$@"
+    local update_from_env=$1
+    local from_folder=""
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
+    # If env not resolved, exit
+    if ! resolve_env_to_full_name "$update_from_env" >/dev/null; then
+        exit 1
+    fi
+    # Function logic
+    from_folder=$(build_local_folder_name_from_env "$update_from_env")
+    if [ "$from_folder" != "." ]; then
+        download_from_env "$update_from_env"
+    fi
+    update_local_from_source "$from_folder"
+    upload_to_pg "$from_folder"
     update_gitignore
     commit_git
 }
+
+
 
 
 ###########################################################################################################################
@@ -1444,17 +1655,18 @@ update_github() {
 ###########################################################################################################################
 
 
-# General
 
 # If any args are passed, check if dependencies are installed
 if [ "$flg_args_passed" == "true" ]; then
     check_dependencies
 fi
 
+# General option calls
+
 # Check for updates
 if [ "$flg_chk_for_updates" == "true" ]; then
     check_for_updates
-    exit 0
+    # exit 0
 fi
 
 # Install
@@ -1489,76 +1701,26 @@ fi
 
 # Action calls
 
-if [ "$flg_compare" == "true" ]; then
-    compare_local
-    exit 0
+# Compare environments
+if [ "$flg_compare_from_to_env" == "true" ]; then
+    compare_envs "$glb_compare_env_1" "$glb_compare_env_2"
 fi
 
-# Compare local and playground
-if [ "$flg_compare_lcl_and_pg" == "true" ]; then
-    compare_lcl_and_pg
-    exit 0
+# Download from GCP env
+if [ "$flg_download_from_env" == "true" ]; then
+    download_from_env "$glb_download_env"
 fi
 
-# If any args are passed, check if carrier scac and service name are set
-if [ "$flg_args_passed" == "true" ]; then
-    check_action_requirements
+# Update from/to env
+if [ "$flg_update_from_to_env" == "true" ]; then
+    update_from_to_env "$glb_update_from_env" "$glb_update_to_env"
 fi
 
-# Compare local and qa-int
-if [ "$flg_compare_lcl_and_int" == "true" ]; then
-    compare_lcl_and_qa_int
+# Update local, GitHub and playground from env
+if [ "$flg_update_lcl_pg_gh_from_env" == "true" ]; then
+    update_lcl_pg_gh_from_env "$glb_update_from_env"
 fi
 
-# Compare playground and qa-int
-if [ "$flg_compare_pg_and_int" == "true" ]; then
-    compare_pg_and_qa_int
-fi
-
-# Download from GCP playground
-if [ "$flg_download_pg" == "true" ]; then
-    download_from_pg
-fi
-
-# Download from GCP qa-int
-if [ "$flg_download_qa_int" == "true" ]; then
-    download_from_qa_int
-fi
-
-# Update local from playground
-if [ "$flg_update_lcl_from_pg" == "true" ]; then
-    update_local_from_pg
-fi
-
-# Update local from qa-int
-if [ "$flg_update_lcl_from_qa_int" == "true" ]; then
-    update_local_from_qa_int
-fi
-
-# Update playground from local
-if [ "$flg_update_pg_from_lcl" == "true" ]; then
-    update_pg_from_local
-fi
-
-# Update playground from qa-int
-if [ "$flg_update_pg_from_qa_int" == "true" ]; then
-    update_pg_from_qa_int
-fi
-
-# Update GitHub from playground
-if [ "$flg_update_gh_from_pg" == "true" ]; then
-    update_github_from_pg
-fi
-
-# Update GitHub from qa-int
-if [ "$flg_update_gh_from_qa_int" == "true" ]; then
-    update_github_from_qa_int
-fi
-
-# Update local, GitHub and playground from qa-int
-if [ "$flg_update_all_from_qa_int" == "true" ]; then
-    update_all_from_qa_int
-fi
 
 
 ###################################################################################################
@@ -1566,14 +1728,12 @@ fi
 ###################################################################################################
 
 
-# Remove local playground download folder
-if [ -d "$local_pg_folder" ] && { [ "$flg_download_pg" != "true" ] || [ -z "$(ls -A "$local_pg_folder")" ]; }; then
-    rm -r "$local_pg_folder"
-fi
 
-# Remove local qa-int download folder
-if [ -d "$local_qa_int_folder" ] && { [ "$flg_download_qa_int" != "true" ] || [ -z "$(ls -A "$local_qa_int_folder")" ]; }; then
-    rm -r "$local_qa_int_folder"
-fi
+# Remove temporary download folders
+for dir in "tmp_gcp2git"*; do
+    if [ -d "$dir" ]; then
+        rm -r "$dir"
+    fi
+done
 
 echo "Info: Script completed."
