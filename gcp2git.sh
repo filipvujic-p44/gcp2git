@@ -1548,12 +1548,9 @@ compare_envs() {
     compare_files "$local_folder_1" "$local_folder_2"
 }
 
-# Download from any env
-# $1 - source environment
+# Compare all environments
 compare_all() {
-#    # Check arg count and npe, assign values
-#    check_args 1 "$@"
-#    local env_name=$1
+    # Check arg count and npe, assign values
     # Requirement checks
     check_carrier_is_set
     check_service_is_set
@@ -1571,7 +1568,6 @@ compare_all() {
         result_list=("${result_list[@]/$item}")
         tmp_list=("${result_list[@]}")
         tmp_list=($(printf "%s\n" "${tmp_list[@]}" | grep -v '^$'))
-        # echo "${tmp_list[@]}" # debug
         for element in "${tmp_list[@]}"; do
             compare_envs $item $element
         done
@@ -1744,7 +1740,7 @@ fi
 
 # Compare all environments
 if [ "$flg_compare_all_envs" == "true" ]; then
-    compare_all # debug
+    compare_all
 fi
 
 # Download from GCP env
