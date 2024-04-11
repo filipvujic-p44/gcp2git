@@ -8,7 +8,6 @@ repo="https://github.com/$repo_owner/$repo_name"
 
 ###################################### TO-DO ##############################################
 # - update from folder (or just resolve dir to dirname)
-# - compare all remotes
 ###########################################################################################
 
 
