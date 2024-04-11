@@ -1560,10 +1560,12 @@ compare_all() {
     # Function logic
     #echo $env_name
     env_list=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
-    # Remove passed env from all env list
-#    removed_source_env_list=("${env_list[@]/$env_name}")
+    # Remove sbx and eu (403 error)
+    removed_source_env_list=("${env_list[@]}")
+    for item in "sbx" "eu"; do
+        removed_source_env_list=("${removed_source_env_list[@]/$item}")
+    done
     result_list=($(printf "%s\n" "${removed_source_env_list[@]}" | grep -v '^$'))
-    result_list=("${env_list[@]}") # debug - use this if you want to skip removing one env
     # Iterate over env list
     for item in "${result_list[@]}"; do
         result_list=("${result_list[@]/$item}")
@@ -1571,7 +1573,6 @@ compare_all() {
         tmp_list=($(printf "%s\n" "${tmp_list[@]}" | grep -v '^$'))
         # echo "${tmp_list[@]}" # debug
         for element in "${tmp_list[@]}"; do
-            #echo "$item - $element" # debug
             compare_envs $item $element
         done
     done
