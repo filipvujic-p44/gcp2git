@@ -1,14 +1,13 @@
 #!/bin/bash
-version="v1.1.5"
+version="v1.1.6"
 author="Filip Vujic"
-last_updated="29-Mar-2024"
+last_updated="11-Apr-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
 
 ###################################### TO-DO ##############################################
 # - update from folder (or just resolve dir to dirname)
-# - compare all remotes
 ###########################################################################################
 
 
@@ -56,7 +55,7 @@ Options:
                [--install] [--install-y] [--uninstall] [--chk-install] [--chk-for-updates] 
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
                [--generate-env-file] [--update-gitignore-file] 
-               [--compare] [--download] [--update] [--update-lcl-pg-gh] 
+               [--compare] [--compare-all] [--download] [--update] [--update-lcl-pg-gh] 
                [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] 
                [--all-interactions] [--rating] [--dispatch] [--tracking] [--imaging] 
                [--all-services] [--scac <carrier_scac>] <carrier_scac> [--all-carriers]
@@ -80,6 +79,7 @@ Options (details):
 
     actions:
         --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --compare-all                     Compare all environments.
         --download <env>                  Download remote GCP files.
         --update <env_from> <env_to>      Update files from-to environment.
         --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
@@ -142,6 +142,7 @@ Options:
 --------
     actions:
         --compare <target_1> <target_2>   Compare files from any two environments or folders.
+        --compare-all                     Compare all environments.
         --download <env>                  Download remote GCP files.
         --update <env_from> <env_to>      Update files from-to environment.
         --update-lcl-pg-gh <env_from>     Update local, playground and GitHub files from given environment.
@@ -219,6 +220,7 @@ flg_chk_for_updates=false
 flg_generate_env_file=false
 
 flg_compare_from_to_env=false
+flg_compare_all_envs=false
 flg_download_from_env=false
 
 flg_downloaded_playground=false
@@ -373,6 +375,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             glb_compare_env_1="${2}"
             glb_compare_env_2="${3}"
             shift 2 # plus 1 after case block
+            ;;
+        --compare-all)
+            flg_compare_all_envs=true
             ;;
         --download)
             flg_download_from_env=true
@@ -977,11 +982,11 @@ autocomplete() {
     local options="--version -v --chk-for-updates --auto-chk-for-updates-off --auto-chk-for-updates-on "
     options+="--help -h --help-gcloud-cli --help-actions-and-envs --install --install-y --uninstall "
     options+="--chk-install --generate-env-file --update-gitignore-file "
-    options+="--compare --download --update --update-lcl-pg-gh "
+    options+="--compare --compare-all --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions "
     options+="--rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
 
-    if [[ " \${COMP_WORDS[@]} " =~ " --compare " ]]; then
+    if [[ "\${COMP_WORDS[*]}" =~ " --compare " ]]; then
         local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
         local folder_options=\$(compgen -o plusdirs -- "\${cur}")
         local combined_options=("\${env_options[@]}" "\${folder_options[@]}")
@@ -1542,6 +1547,32 @@ compare_envs() {
     compare_files "$local_folder_1" "$local_folder_2"
 }
 
+# Compare all environments
+compare_all() {
+    # Check arg count and npe, assign values
+    # Requirement checks
+    check_carrier_is_set
+    check_service_is_set
+    # Function logic
+    #echo $env_name
+    env_list=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
+    # Remove sbx and eu (403 error)
+    removed_source_env_list=("${env_list[@]}")
+    for item in "sbx" "eu"; do
+        removed_source_env_list=("${removed_source_env_list[@]/$item}")
+    done
+    result_list=($(printf "%s\n" "${removed_source_env_list[@]}" | grep -v '^$'))
+    # Iterate over env list
+    for item in "${result_list[@]}"; do
+        result_list=("${result_list[@]/$item}")
+        tmp_list=("${result_list[@]}")
+        tmp_list=($(printf "%s\n" "${tmp_list[@]}" | grep -v '^$'))
+        for element in "${tmp_list[@]}"; do
+            compare_envs $item $element
+        done
+    done
+}
+
 # Download from any env
 # $1 - source environment to download from
 download_from_env() {
@@ -1704,6 +1735,11 @@ fi
 # Compare environments
 if [ "$flg_compare_from_to_env" == "true" ]; then
     compare_envs "$glb_compare_env_1" "$glb_compare_env_2"
+fi
+
+# Compare all environments
+if [ "$flg_compare_all_envs" == "true" ]; then
+    compare_all
 fi
 
 # Download from GCP env
