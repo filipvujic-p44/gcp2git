@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.6"
+version="v1.1.7"
 author="Filip Vujic"
-last_updated="11-Apr-2024"
+last_updated="18-Jul-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -57,7 +57,7 @@ Options:
                [--generate-env-file] [--update-gitignore-file] 
                [--compare] [--compare-all] [--download] [--update] [--update-lcl-pg-gh] 
                [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] 
-               [--all-interactions] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--all-interactions] [--auth] [--rating] [--dispatch] [--tracking] [--imaging] 
                [--all-services] [--scac <carrier_scac>] <carrier_scac> [--all-carriers]
 
 Options (details):
@@ -100,6 +100,7 @@ Options (details):
         --all-modes                       Set mode to '*'.
         
     service-types:
+    	--auth                            Set service to 'AUTHENTICATION_RENEWAL'.
         --rating                          Set service to 'RATING'.
         --dispatch                        Set service to 'DISPATCH'.
         --tracking                        Set service to 'SHIPMENT_STATUS'.
@@ -407,6 +408,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             glb_interaction="*"
             glb_carrier="*"
             ;;
+        --auth)
+        	glb_service="AUTHENTICATION_RENEWAL"
+        	;;
         --rating)
             glb_service="RATING"
             ;;
@@ -984,7 +988,7 @@ autocomplete() {
     options+="--chk-install --generate-env-file --update-gitignore-file "
     options+="--compare --compare-all --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions "
-    options+="--rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
+    options+="--auth --rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
 
     if [[ "\${COMP_WORDS[*]}" =~ " --compare " ]]; then
         local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
@@ -1049,7 +1053,7 @@ US_PROD_BASE_URL=""
 MODE=""
 # Interactions = [ CARRIER_PULL, CARRIER_PUSH, *  ]
 INTERACTION=""
-# Services = [ RATING, DISPATCH, TRACKING, IMAGING, * ]
+# Services = [ AUTHENTICATION_RENEWAL, RATING, DISPATCH, TRACKING, IMAGING, * ]
 SERVICE="MY_SERVICE"
 # Carrier scac
 SCAC="MY_SCAC"
