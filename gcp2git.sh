@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.7"
+version="v1.1.8"
 author="Filip Vujic"
-last_updated="18-Jul-2024"
+last_updated="03-Sep-2024"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -56,8 +56,8 @@ Options:
                [--auto-chk-for-updates-off] [--auto-chk-for-updates-on] 
                [--generate-env-file] [--update-gitignore-file] 
                [--compare] [--compare-all] [--download] [--update] [--update-lcl-pg-gh] 
-               [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] 
-               [--all-interactions] [--auth] [--rating] [--dispatch] [--tracking] [--imaging] 
+               [--ltl] [--tl] [--all-modes] [--carrier-push] [--carrier-pull] [--all-interactions]
+               [--auth] [--rating] [--dispatch] [--tracking] [--imaging] [--telemetry]
                [--all-services] [--scac <carrier_scac>] <carrier_scac> [--all-carriers]
 
 Options (details):
@@ -105,6 +105,7 @@ Options (details):
         --dispatch                        Set service to 'DISPATCH'.
         --tracking                        Set service to 'SHIPMENT_STATUS'.
         --imaging                         Set service to 'IMAGING'.
+        --telemetry                       Set service to 'TELEMETRY'.
         --all-services                    Set service to '*'.
 
     interaction-types:
@@ -422,6 +423,9 @@ while [ "$1" != "" ] || [ "$#" -gt 0 ]; do
             ;;
         --imaging)
             glb_service="IMAGING"
+            ;;
+        --telemetry)
+            glb_service="TELEMETRY"
             ;;
         --all-services)
             glb_service="*"
@@ -988,7 +992,7 @@ autocomplete() {
     options+="--chk-install --generate-env-file --update-gitignore-file "
     options+="--compare --compare-all --download --update --update-lcl-pg-gh "
     options+="--ltl --tl --all-modes --carrier-push --carrier-pull --all-interactions "
-    options+="--auth --rating --dispatch --tracking --imaging --all-services --scac --all-carriers"
+    options+="--auth --rating --dispatch --tracking --imaging --telemetry --all-services --scac --all-carriers"
 
     if [[ "\${COMP_WORDS[*]}" =~ " --compare " ]]; then
         local env_options=("lcl" "pg" "int" "stg" "sbx" "eu" "us")
