@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.8"
+version="v1.1.9"
 author="Filip Vujic"
-last_updated="03-Sep-2024"
+last_updated="01-Apr-2025"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -585,7 +585,7 @@ check_installation() {
         ((cnt_missing++))
     fi
         
-    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ]; then
+    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/autocomplete_gcp2git.sh ]; then
         echo "Info: ~/gcp2git/ ------------- OK."
     else
         echo "Error: ~/gcp2git/ ------------ NOT OK."
@@ -593,7 +593,7 @@ check_installation() {
     fi
 
     if grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
-        grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+        grep -q "source ~/gcp2git/util/autocomplete_gcp2git.sh" ~/.bashrc; then
         echo "Info: ~/.bashrc -------------- OK."
     else
         echo "Error: ~/.bashrc ------------- NOT OK."
@@ -765,9 +765,9 @@ install_script() {
         install_dependencies
     fi
     # Check if script already installed
-    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/gcp2git_autocomplete.sh ] &&
+    if [ -d ~/gcp2git ] && [ -f ~/gcp2git/main/gcp2git.sh ] && [ -f ~/gcp2git/util/autocomplete_gcp2git.sh ] &&
     grep -q "# gcp2git script" ~/.bashrc && grep -q 'export PATH=$PATH:~/gcp2git/main' ~/.bashrc &&
-    grep -q "source ~/gcp2git/util/gcp2git_autocomplete.sh" ~/.bashrc; then
+    grep -q "source ~/gcp2git/util/autocomplete_gcp2git.sh" ~/.bashrc; then
         echo "Info: Script already installed at '~/gcp2git' folder."
         echo "Q: Do you want to reinstall gcp2git? (Y/n):"
         read do_reinstall
@@ -791,7 +791,7 @@ install_script() {
     echo "Info: Adding paths to '~/.bashrc'..."
     echo "# gcp2git script" >> ~/.bashrc
     echo 'export PATH=$PATH:~/gcp2git/main' >> ~/.bashrc
-    echo "source ~/gcp2git/util/gcp2git_autocomplete.sh" >> ~/.bashrc
+    echo "source ~/gcp2git/util/autocomplete_gcp2git.sh" >> ~/.bashrc
     echo "Info: Paths added to '~/.bashrc'."
     # Print success message
     echo "Info: Success. Script installed in '~/gcp2git/' folder."
@@ -937,7 +937,7 @@ clean_up_installation() {
     fi
     sed -i "/# gcp2git script/d" ~/.bashrc
     sed -i '/export PATH=$PATH:~\/gcp2git\/main/d' ~/.bashrc
-    sed -i "/source ~\/gcp2git\/util\/gcp2git_autocomplete.sh/d" ~/.bashrc
+    sed -i "/source ~\/gcp2git\/util\/autocomplete_gcp2git.sh/d" ~/.bashrc
     echo "Info: Cleanup completed."
 }
 
@@ -979,11 +979,11 @@ install_updates() {
 
 # Generates autocomplete script in install folder
 generate_autocomplete_script() {
-    echo "Info: Generating 'gcp2git_autocomplete.sh' script..."
+    echo "Info: Generating 'autocomplete_gcp2git.sh' script..."
     completion_text=$(cat <<EOL
 #!/bin/bash
 
-autocomplete() {
+autocomplete_gcp2git() {
     local cur prev words cword
     _init_completion || return
 
@@ -1022,12 +1022,12 @@ autocomplete() {
     return 0
 }
 
-complete -F autocomplete gcp2git.sh
+complete -F autocomplete_gcp2git gcp2git.sh
 EOL
 )
-    echo "$completion_text" >> ~/gcp2git/util/gcp2git_autocomplete.sh
-    chmod +x ~/gcp2git/util/gcp2git_autocomplete.sh
-    echo "Info: Generated 'gcp2git_autocomplete.sh' script."
+    echo "$completion_text" >> ~/gcp2git/util/autocomplete_gcp2git.sh
+    chmod +x ~/gcp2git/util/autocomplete_gcp2git.sh
+    echo "Info: Generated 'autocomplete_gcp2git.sh' script."
 }
 
 # Generates .env_gcp2git file in current folder
