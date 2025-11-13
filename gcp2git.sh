@@ -1,7 +1,7 @@
 #!/bin/bash
-version="v1.1.9"
+version="v1.1.10"
 author="Filip Vujic"
-last_updated="01-Apr-2025"
+last_updated="13-Nov-2025"
 repo_owner="filipvujic-p44"
 repo_name="gcp2git"
 repo="https://github.com/$repo_owner/$repo_name"
@@ -37,6 +37,7 @@ Requirements:
     - wget (for downloading updates)
     - gcloud (for GCP access)
     - python3 (for comparing files)
+    - meld (for comparing files)
     - git (for syncing with github repos)
     - bash-completion (for autocomplete)
 
@@ -44,10 +45,10 @@ Installation:
 -------------
     Using '--install' option will create a folder ~/gcp2git and put the script inside.
     That path will be exported to ~/.bashrc so it can be used from anywhere.
-    Script requires wget, gcloud, python3, git and bash-completion, so it will install those packages.
+    Script requires wget, gcloud, python3, meld, git and bash-completion, so it will install those packages.
     Use '--install-y' to preapprove dependencies and run GCloud CLI login after installation.
     Using '--uninstall' will remove ~/gcp2git folder and ~/.bashrc inserts. 
-    You can remove wget, gcloud, python3, git and bash-completion dependencies manually, if needed.
+    You can remove wget, gcloud, python3, meld, git and bash-completion dependencies manually, if needed.
 
 Options:
 --------
@@ -480,6 +481,11 @@ check_python_installed() {
     command -v python3 &>/dev/null
 }
 
+# Check if meld is installed
+check_meld_installed() {
+    command -v meld &>/dev/null
+}
+
 # Check if git is installed
 check_git_installed() {
     command -v git &>/dev/null
@@ -568,6 +574,13 @@ check_installation() {
         echo "Info: python3 ---------------- OK."
     else
         echo "Error: python3 --------------- NOT FOUND."
+        ((cnt_missing++))
+    fi
+
+    if check_meld_installed; then
+        echo "Info: meld ------------------- OK."
+    else
+        echo "Error: meld ------------------ NOT FOUND."
         ((cnt_missing++))
     fi
 
@@ -693,6 +706,10 @@ check_dependencies() {
         echo "Info: Python is not installed. Comparing files may not work properly."
     fi
 
+    if ! check_meld_installed; then
+        echo "Info: Meld is not installed. Comparing files may not work properly."
+    fi
+
     if ! check_git_installed; then
         echo "Info: Git is not installed. Syncing with GitHub may not work properly."
     fi
@@ -761,7 +778,7 @@ install_script() {
     echo "Info: Installing gcp2git..."
     script_directory="$(dirname "$(readlink -f "$0")")"
     # Check if requirements installed
-    if ! check_wget_installed || ! check_gcloud_installed || ! check_python_installed || ! check_git_installed || ! check_bash_completion_installed; then
+    if ! check_wget_installed || ! check_gcloud_installed || ! check_python_installed || check_meld_installed || ! check_git_installed || ! check_bash_completion_installed; then
         install_dependencies
     fi
     # Check if script already installed
@@ -873,6 +890,16 @@ install_python() {
     echo "Info: Python installed."
 }
 
+install_meld() {
+    echo "Info: Installing meld..."
+    if [ "$do_install_y" == "true" ]; then
+        sudo apt install -y meld
+    else
+        sudo apt install meld
+    fi
+    echo "Info: Meld installed."
+}
+
 install_git() {
     echo "Info: Installing git..."
     if [ "$do_install_y" == "true" ]; then
@@ -894,7 +921,7 @@ install_bash_completion() {
 }
 
 install_dependencies() {
-    sudo apt update
+
     # Check if wget is installed
     if ! check_wget_installed; then
         install_wget
@@ -908,6 +935,11 @@ install_dependencies() {
     # Check if python3 is installed
     if ! check_python_installed; then
         install_python
+    fi
+
+    # Check if meld is installed
+    if ! check_meld_installed; then
+        install_meld
     fi
     
     # Check if git is installed
@@ -945,7 +977,7 @@ clean_up_installation() {
 uninstall_script() {
     echo "Info: Uninstaling script..."
     clean_up_installation
-    echo "Info: Script required wget, gcloud, python3, git and bash-completion installed."
+    echo "Info: Script required wget, gcloud, python3, meld, git and bash-completion installed."
     echo "Info: You can remove these packages manually if needed."
     echo "Info: Uninstall completed."
     exit 0
@@ -1313,7 +1345,7 @@ compare_files() {
                 else
                     # Handle file diff
                     echo "Info: File '$filename' doesn't have matching content."
-                    echo "Q: Show diff (y/N)?"
+                    echo "Q: Show diff (y/N) or open meld (m)?"
                     read show_diff
                     if [ "${show_diff,,}" == "y" ]; then
                         # Print lines that your local file contains, but the remote one doesn't
@@ -1322,6 +1354,9 @@ compare_files() {
                         # Print lines that the remote file contains, but your local one doesn't
                         echo "Info: File content: '$target_folder_file_path':"
                         grep -nFxvf "$source_file" "$target_folder_file_path"
+                    elif [ "${show_diff,,}" == "m" ]; then
+                        meld "$source_folder" "$target_folder"
+                        break
                     fi
                     ((diffCount++))
                 fi
